@@ -17,8 +17,14 @@ export interface Theme {
   /** CSS custom properties applied to the document root. */
   readonly vars: Readonly<Record<string, string>>;
   readonly tiles: readonly { name: string; svg: string }[];
-  /** Tile body colours (face, edge, dark rim). */
-  readonly tile: { readonly face: string; readonly edge: string; readonly rim: string };
+  /** Tile body colours: face (top → bottom shade), side edge (top → bottom shade), outline rim. */
+  readonly tile: {
+    readonly face: string;
+    readonly faceShade: string;
+    readonly edge: string;
+    readonly edgeShade: string;
+    readonly rim: string;
+  };
   readonly particles: ParticlePreset;
   /** Background decoration, drawn as an SVG data URI. */
   readonly backdrop: string;
