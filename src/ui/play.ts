@@ -203,7 +203,7 @@ export function playScreen(m: number | PlayMode) {
         el,
         `<h2>Paused</h2><p>Your board stays exactly as you left it.</p>`,
         [
-          { label: 'Resume', run: closeSheet },
+          { label: 'Resume', back: true, run: closeSheet },
           { label: zen ? 'New board' : 'Restart', kind: 'secondary', run: zen ? newZen : restart },
           { label: 'Home', kind: 'secondary', run: () => app.show(homeScreen) },
         ],
@@ -242,7 +242,7 @@ export function playScreen(m: number | PlayMode) {
           `<h2>Board cleared</h2><p>${g.pairsCleared} pairs${g.bestCombo >= 2 ? `, best combo ×${g.bestCombo}` : ''}. Take a breath, then go again.</p>`,
           [
             { label: 'New board', run: newZen },
-            { label: 'Home', kind: 'secondary', run: () => app.show(homeScreen) },
+            { label: 'Home', kind: 'secondary', back: true, run: () => app.show(homeScreen) },
           ],
           'Board cleared',
         );
@@ -264,7 +264,7 @@ export function playScreen(m: number | PlayMode) {
            <p>${first ? `Streak: ${streak} day${streak === 1 ? '' : 's'}. Come back tomorrow to keep it going.` : 'You already cleared today’s challenge, so this one is just for fun.'}</p>
            ${first ? `<div class="reward">${coinLine(CONFIG.rewards.daily)}</div>` : ''}`,
           [
-            { label: 'Home', run: () => app.show(homeScreen) },
+            { label: 'Home', back: true, run: () => app.show(homeScreen) },
             { label: 'Journey map', kind: 'secondary', run: () => app.show(mapScreen) },
           ],
           'Daily challenge cleared',
@@ -290,7 +290,7 @@ export function playScreen(m: number | PlayMode) {
          ${unlock ? `<p class="unlock-note">New theme unlocked: <b>${unlock}</b>. Switch to it from Themes on the home screen.</p>` : ''}`,
         [
           { label: `Play level ${n + 1}`, run: () => app.show(playScreen(n + 1)) },
-          { label: 'Journey map', kind: 'secondary', run: () => app.show(mapScreen) },
+          { label: 'Journey map', kind: 'secondary', back: true, run: () => app.show(mapScreen) },
         ],
         `Level ${n} cleared`,
       );
@@ -321,6 +321,7 @@ export function playScreen(m: number | PlayMode) {
       actions.push({
         label: mode.kind === 'journey' ? 'Journey map' : 'Home',
         kind: 'secondary',
+        back: true,
         run: () => app.show(mode.kind === 'journey' ? mapScreen : homeScreen),
       });
       sheet = openSheet(
@@ -365,6 +366,7 @@ export function playScreen(m: number | PlayMode) {
         [
           {
             label: 'Got it',
+            back: true,
             run: () => {
               closeSheet();
               app.save.update((d) => d.seenIntro.push(key));
@@ -439,6 +441,13 @@ export function playScreen(m: number | PlayMode) {
     return {
       el,
       pause: showPause,
+      keepAwake: true,
+      back() {
+        // Still loading: leave. Playing: pause. Ending: wait for the result sheet.
+        if (!game) app.show(mode.kind === 'journey' ? mapScreen : homeScreen);
+        else if (game.status === 'playing') showPause();
+        return true;
+      },
       destroy() {
         destroyed = true;
         app.sound.danger(false);

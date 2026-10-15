@@ -3,3 +3,8 @@ dist/
 test-results/
 playwright-report/
 e2e/__shots__/
+android/
+www/
+*.jks
+*.keystore
+keystore*.txt
