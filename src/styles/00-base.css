@@ -1,4 +1,41 @@
 *,*::before,*::after{box-sizing:border-box}
+:root{
+  --font-display:"Noto Serif","Source Serif 4","Source Serif Pro",Georgia,"Times New Roman",serif;
+  --font-ui:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;
+  --safe-top:max(env(safe-area-inset-top),12px);
+  --safe-bottom:max(env(safe-area-inset-bottom),10px);
+  --bg:#D9E4DC;--bg-deep:#C6D6CB;--surface:#FBF9F4;--ink:#26324A;--ink-soft:#5A6578;
+  --accent:#E57FA5;--accent-deep:#C45D84;--accent-ink:#fff;--gold:#D9A63A;--danger:#C23B54;
+  --tray:#EEF2EC;--tray-edge:#A8BDB0;--well:#DCE5DE;
+}
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
-body{background:#f3ece0;color:#2d2a26;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-#app{position:fixed;inset:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased}
+#app{position:fixed;inset:0;background:var(--bg) var(--backdrop,none) center/cover no-repeat}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent-deep);outline-offset:3px}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Screens */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column}
+
+/* Buttons are built like tiles: a face sitting on a visible edge that presses down. */
+.btn{appearance:none;border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  min-height:56px;padding:0 28px;border-radius:18px;font-weight:700;font-size:18px;letter-spacing:.01em;
+  background:var(--ink);color:var(--surface);box-shadow:0 6px 0 #141B2B;transform:translateY(0);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #141B2B}
+.btn.secondary{background:var(--surface);color:var(--ink);box-shadow:0 6px 0 var(--tray-edge),inset 0 0 0 2px var(--tray-edge)}
+.btn.secondary:active{box-shadow:0 2px 0 var(--tray-edge),inset 0 0 0 2px var(--tray-edge)}
+.btn.small{min-height:44px;padding:0 18px;font-size:16px;border-radius:14px;box-shadow:0 4px 0 #141B2B}
+.btn.small.secondary{box-shadow:0 4px 0 var(--tray-edge),inset 0 0 0 2px var(--tray-edge)}
+.icon-btn{appearance:none;border:0;cursor:pointer;width:48px;height:48px;border-radius:16px;display:grid;place-items:center;
+  background:var(--surface);color:var(--ink);box-shadow:0 4px 0 var(--tray-edge),inset 0 0 0 2px var(--tray-edge)}
+.icon-btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--tray-edge),inset 0 0 0 2px var(--tray-edge)}
+.icon-btn svg{width:22px;height:22px}
+
+/* Coin counter: a mon (square-holed coin) next to the balance */
+.coins{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px 0 8px;border-radius:20px;background:var(--surface);
+  box-shadow:inset 0 0 0 2px var(--tray-edge);font-weight:700;font-variant-numeric:tabular-nums}
+.coins svg{width:24px;height:24px}
+
+.toast{position:absolute;left:50%;bottom:calc(var(--safe-bottom) + 24px);transform:translateX(-50%);z-index:9000;background:var(--ink);color:var(--surface);
+  padding:12px 18px;border-radius:14px;font-size:15px;max-width:calc(100% - 32px);text-align:center}

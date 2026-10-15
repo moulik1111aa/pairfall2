@@ -8,6 +8,7 @@ const cases = [
   { run: { powerupsUsed: 1, dangerReached: false, comboBonusSteps: 4 }, stars: 2, coins: 24 },
   { run: { powerupsUsed: 2, dangerReached: false, comboBonusSteps: 0 }, stars: 1, coins: 15 },
   { run: { powerupsUsed: 3, dangerReached: true, comboBonusSteps: 10 }, stars: 1, coins: 25 },
+  { run: { powerupsUsed: 0, dangerReached: false, comboBonusSteps: 200 }, stars: 3, coins: 45 },
 ];
 
 for (const c of cases) {

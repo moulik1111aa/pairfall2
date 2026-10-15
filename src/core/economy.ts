@@ -17,5 +17,5 @@ export function starsFor(run: RunSummary): 1 | 2 | 3 {
 
 export function coinsFor(run: RunSummary): number {
   const r = CONFIG.rewards;
-  return r.levelClear + r.perStar * starsFor(run) + r.perComboStepAbove2 * run.comboBonusSteps;
+  return r.levelClear + r.perStar * starsFor(run) + Math.min(r.comboBonusCap, r.perComboStepAbove2 * run.comboBonusSteps);
 }
