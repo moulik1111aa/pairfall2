@@ -1,16 +1,12 @@
-// The rules engine. Pure and deterministic: no graphics, no browser APIs.
-// Input is an action (tap / undo); output is a list of events that the
-// renderer, audio and haptics react to independently.
+// The game: rules plus everything a player experiences around them — combos,
+// danger, undo history, power-up bookkeeping — expressed as events that the
+// renderer, audio and haptics react to independently. No graphics, no browser APIs.
 
-import { Board, buildGeometry, type Slot } from './board.ts';
+import { Rules, TapResult, WILD, type LevelData } from './rules.ts';
+import type { BoardGeometry } from './board.ts';
 import { CONFIG } from '../config.ts';
 
-export interface LevelData {
-  readonly slots: readonly Slot[];
-  /** kinds[slotId] = tile kind (0-based). Every kind appears an even number of times. */
-  readonly kinds: readonly number[];
-  readonly limit: number;
-}
+export { WILD, type LevelData, type Specials } from './rules.ts';
 
 export interface TrayTile {
   readonly slot: number;
@@ -25,6 +21,10 @@ export type GameEvent =
   | { type: 'freed'; slots: number[] }
   | { type: 'blocked'; slots: number[] }
   | { type: 'trayChanged'; tray: TrayTile[] }
+  | { type: 'thawed'; slots: number[] }
+  | { type: 'chilled'; slots: number[] }
+  | { type: 'unlocked'; slots: number[] }
+  | { type: 'shuffled'; slots: number[] }
   | { type: 'danger' }
   | { type: 'dangerEnd' }
   | { type: 'undone'; slot: number; kind: number }
@@ -33,81 +33,97 @@ export type GameEvent =
 
 interface HistoryEntry {
   slot: number;
-  kind: number;
   /** Set when this tap completed a pair (such taps cannot be undone). */
   cleared: boolean;
-  freed: number[];
 }
 
 export class Game {
-  readonly board: Board;
-  readonly kinds: readonly number[];
-  limit: number;
-  tray: TrayTile[] = [];
+  readonly rules: Rules;
   status: GameStatus = 'playing';
   combo = 0;
   bestCombo = 0;
   /** Sum over clears of max(0, combo − 2); feeds the coin bonus. */
   comboBonusSteps = 0;
-  pairsCleared = 0;
   dangerReached = false;
   powerupsUsed = 0;
+  /** Set once Continue has been used this attempt. */
+  continued = false;
   private lastClearAt = -Infinity;
   private inDanger = false;
   private readonly history: HistoryEntry[] = [];
   private readonly clock: () => number;
 
-  constructor(level: LevelData, clock: () => number = () => performance.now()) {
-    if (level.kinds.length !== level.slots.length) throw new Error('kinds/slots length mismatch');
-    this.board = new Board(buildGeometry(level.slots));
-    this.kinds = level.kinds;
-    this.limit = level.limit;
+  constructor(level: LevelData, clock: () => number = () => performance.now(), geo?: BoardGeometry) {
+    this.rules = new Rules(level, geo);
     this.clock = clock;
   }
 
+  get board() {
+    return this.rules.board;
+  }
+  get kinds(): readonly number[] {
+    return this.rules.kinds;
+  }
+  get limit(): number {
+    return this.rules.limit;
+  }
+  get pairsCleared(): number {
+    return this.rules.pairsCleared;
+  }
+  get tray(): TrayTile[] {
+    return this.rules.tray.map((slot) => ({ slot, kind: this.rules.kinds[slot] }));
+  }
   get danger(): boolean {
     return this.inDanger;
   }
 
   canTap(slot: number): boolean {
-    return this.status === 'playing' && this.board.isFree(slot);
+    return this.status === 'playing' && this.rules.canTap(slot);
+  }
+
+  isLocked(slot: number): boolean {
+    return this.rules.isLocked(slot);
+  }
+
+  frostOf(slot: number): number {
+    return this.rules.frost[slot];
   }
 
   tap(slot: number): GameEvent[] {
     if (!this.canTap(slot)) return [];
-    const kind = this.kinds[slot];
+    const r = this.rules;
+    const kind = r.kinds[slot];
+    const result = r.tap(slot);
+    if (result === TapResult.Ignored) return [];
     const events: GameEvent[] = [];
-    const freed = this.board.remove(slot);
-    const partnerIndex = this.tray.findIndex((t) => t.kind === kind);
-
-    if (partnerIndex >= 0) {
-      const partner = this.tray[partnerIndex];
-      events.push({ type: 'tileToTray', slot, kind, trayIndex: partnerIndex });
-      this.tray.splice(partnerIndex, 1);
+    if (result === TapResult.Cleared) {
+      const partner = r.lastPartner;
+      events.push({ type: 'tileToTray', slot, kind, trayIndex: r.lastPartnerIndex });
       const now = this.clock();
       this.combo = now - this.lastClearAt <= CONFIG.comboWindowMs ? this.combo + 1 : 1;
       this.lastClearAt = now;
       this.bestCombo = Math.max(this.bestCombo, this.combo);
       this.comboBonusSteps += Math.max(0, this.combo - 2);
-      this.pairsCleared++;
-      events.push({ type: 'pairCleared', slots: [partner.slot, slot], kind, combo: this.combo });
-      this.history.push({ slot, kind, cleared: true, freed });
+      const shownKind = kind === WILD ? r.kinds[partner] : kind;
+      events.push({ type: 'pairCleared', slots: [partner, slot], kind: shownKind, combo: this.combo });
+      this.history.push({ slot, cleared: true });
     } else {
-      events.push({ type: 'tileToTray', slot, kind, trayIndex: this.tray.length });
-      this.tray.push({ slot, kind });
-      this.history.push({ slot, kind, cleared: false, freed });
+      events.push({ type: 'tileToTray', slot, kind, trayIndex: r.tray.length - 1 });
+      this.history.push({ slot, cleared: false });
     }
+    if (r.lastFreed.length) events.push({ type: 'freed', slots: [...r.lastFreed] });
+    if (r.lastChilled.length) events.push({ type: 'chilled', slots: [...r.lastChilled] });
+    if (r.lastThawed.length) events.push({ type: 'thawed', slots: [...r.lastThawed] });
+    if (r.lastUnlocked.length) events.push({ type: 'unlocked', slots: [...r.lastUnlocked] });
+    events.push({ type: 'trayChanged', tray: this.tray });
 
-    if (freed.length) events.push({ type: 'freed', slots: freed });
-    events.push({ type: 'trayChanged', tray: [...this.tray] });
-
-    if (this.tray.length >= this.limit) {
+    if (r.lost) {
       this.status = 'lost';
       events.push({ type: 'lose' });
       return events;
     }
     this.updateDanger(events);
-    if (this.board.remaining === 0 && this.tray.length === 0) {
+    if (r.won) {
       this.status = 'won';
       events.push({ type: 'win' });
     }
@@ -123,27 +139,36 @@ export class Game {
   undo(): GameEvent[] {
     if (!this.canUndo()) return [];
     const last = this.history.pop()!;
-    const idx = this.tray.findIndex((t) => t.slot === last.slot);
-    this.tray.splice(idx, 1);
-    const blocked = this.board.restore(last.slot);
-    const events: GameEvent[] = [{ type: 'undone', slot: last.slot, kind: last.kind }];
+    const blocked = this.rules.untap(last.slot);
+    const events: GameEvent[] = [{ type: 'undone', slot: last.slot, kind: this.rules.kinds[last.slot] }];
     if (blocked.length) events.push({ type: 'blocked', slots: blocked });
-    events.push({ type: 'trayChanged', tray: [...this.tray] });
+    events.push({ type: 'trayChanged', tray: this.tray });
     this.updateDanger(events);
     return events;
   }
 
   /** Raise the tray limit (the +1 Slot power-up / Continue). Revives a lost game. */
   addSlot(): GameEvent[] {
-    this.limit++;
+    this.rules.limit++;
     const events: GameEvent[] = [];
-    if (this.status === 'lost' && this.tray.length < this.limit) this.status = 'playing';
+    if (this.status === 'lost' && !this.rules.lost) this.status = 'playing';
     this.updateDanger(events);
     return events;
   }
 
+  /** Give board tiles new kinds (the Shuffle power-up). `next` maps slot → kind. */
+  reassign(next: ReadonlyMap<number, number>): GameEvent[] {
+    for (const [slot, kind] of next) {
+      if (!this.rules.board.isPresent(slot)) throw new Error(`slot ${slot} is not on the board`);
+      this.rules.kinds[slot] = kind;
+    }
+    // A tapped-then-shuffled tile can no longer be undone safely.
+    this.history.length = 0;
+    return [{ type: 'shuffled', slots: [...next.keys()] }];
+  }
+
   private updateDanger(events: GameEvent[]): void {
-    const now = this.status === 'playing' && this.tray.length === this.limit - 1;
+    const now = this.status === 'playing' && this.rules.tray.length === this.rules.limit - 1;
     if (now && !this.inDanger) {
       this.dangerReached = true;
       events.push({ type: 'danger' });
