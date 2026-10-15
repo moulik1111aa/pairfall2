@@ -6,6 +6,8 @@ import { reducedMotion } from '../render/tweens.ts';
 export interface SheetAction {
   label: string;
   kind?: 'primary' | 'secondary';
+  /** The action the Android back button takes while this sheet is open. */
+  back?: boolean;
   run(): void;
 }
 
@@ -16,6 +18,7 @@ export function openSheet(parent: HTMLElement, body: string, actions: SheetActio
     const b = document.createElement('button');
     b.className = `btn ${a.kind === 'secondary' ? 'secondary' : ''}`;
     b.textContent = a.label;
+    if (a.back) b.dataset.back = '';
     b.addEventListener('click', () => a.run(), { once: true });
     list.appendChild(b);
   }
