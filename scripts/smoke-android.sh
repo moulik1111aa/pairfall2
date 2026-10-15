@@ -31,11 +31,21 @@ for m in re.finditer(r"<node [^>]*>", xml):
             print((x1 + x2) // 2, (y1 + y2) // 2); break
 ' "$1"
 }
+# The emulator's own apps sometimes stall and Android covers the screen with a
+# "isn't responding" dialog; it has nothing to do with Pairfall, so wait it out.
+clear_system_dialogs() {
+  local xy; xy=$(find_node "isn't responding")
+  if [ -n "$xy" ]; then
+    note "dismissing a system 'not responding' dialog"
+    xy=$(find_node "Wait"); [ -n "$xy" ] && adb shell input tap $xy
+  fi
+}
 # Wait up to $2 seconds for text $1 to appear on screen.
 wait_for() {
   local t=0
   while [ $t -lt "${2:-30}" ]; do
     [ -n "$(find_node "$1")" ] && return 0
+    clear_system_dialogs
     sleep 2; t=$((t + 2))
   done
   return 1
@@ -48,6 +58,10 @@ tap_text() {
 alive() { [ -n "$(adb shell pidof $PKG | tr -d '\r')" ]; }
 
 note "device: $(adb shell getprop ro.product.model | tr -d '\r'), Android $(adb shell getprop ro.build.version.release | tr -d '\r'), $(adb shell wm size | tr -d '\r')"
+# Let the freshly booted emulator settle, and keep system error dialogs out of the way.
+sleep 20
+adb shell settings put global hide_error_dialogs 1
+adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS >/dev/null 2>&1
 adb install -r "$APK" | tee -a "$OUT/steps.txt" || { fail "install failed"; exit 1; }
 adb logcat -c
 # Android shows a one-time "Viewing full screen" notice the first time an app hides
