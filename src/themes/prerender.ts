@@ -4,12 +4,15 @@ import type { Theme } from './types.ts';
 
 /** Tile artwork aspect: 100 wide × TILE_H tall (face plus visible edge). */
 export const TILE_W = 100;
-export const TILE_H = 116;
+export const TILE_H = 120;
 
 export function tileSvg(theme: Theme, kind: number): string {
   const { face, edge, rim } = theme.tile;
   const art = theme.tiles[kind % theme.tiles.length].svg;
+  // The drop shadow is baked into the image (a CSS filter per tile is costly to composite).
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${TILE_W} ${TILE_H}" width="${TILE_W * 2}" height="${TILE_H * 2}">
+  <defs><filter id="sh" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.8"/></filter></defs>
+  <rect x="4" y="15" width="92" height="101" rx="15" fill="#26324A" fill-opacity=".2" filter="url(#sh)"/>
   <rect x="2.5" y="12" width="95" height="101.5" rx="15" fill="${edge}" stroke="${rim}" stroke-width="2.5"/>
   <rect x="2.5" y="2.5" width="95" height="101.5" rx="15" fill="${face}" stroke="${rim}" stroke-width="2.5"/>
   <rect x="7" y="7" width="86" height="92.5" rx="11" fill="none" stroke="#FFFFFF" stroke-opacity=".7" stroke-width="2"/>
