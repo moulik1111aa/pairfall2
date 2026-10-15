@@ -117,7 +117,7 @@ The result always has at least one winning sequence of moves.
 Shuffle re-runs §5.2 steps 2–4 on the tiles left on the board, taking the current tray contents into account. The tile slots stay where they are; only the kinds move, with an animated reshuffle. The result is guaranteed winnable.
 
 ### 5.6 Performance
-- Generation runs in a background thread (Web Worker) and must finish within 300 ms on the 13R.
+- Generation runs in a background thread (Web Worker). A first-attempt level must finish within 300 ms on the 13R. Retries may take longer, which is hidden because levels are generated ahead of time.
 - The next level is generated while the current one is being played.
 
 ## 6. Modes
@@ -166,10 +166,11 @@ Locked themes show a preview in the themes gallery. All art and audio is origina
 
 ## 9. Architecture
 
-Stack:
-- TypeScript, Vite, PixiJS v8 (graphics drawn through the GPU via WebGL);
-- Capacitor for the Android wrapper, with the Haptics, Preferences, App and Status Bar plugins;
-- Vitest for unit tests and Playwright for browser tests.
+Stack (revised 2026-10-15: the build workspace can't download packages, so the game has no runtime dependencies):
+- TypeScript, compiled by a small project build script using Node 22's built-in type stripping. The script bundles everything into one self-contained `index.html`.
+- **Rendering:** tiles and the tray are DOM elements moved only with GPU-composited CSS `transform` and `opacity`, so the browser animates them at the display's refresh rate. Particles, glows and bursts are drawn on a full-screen Canvas 2D layer above the board. Tile art is pre-rendered once per theme into image bitmaps, so frames never redraw SVG.
+- **Android wrapper:** Capacitor, with the Haptics, Preferences, App and Status Bar plugins. These are installed only inside the GitHub Actions build, where package downloads work. In the browser preview the `platform/` layer falls back to the web Vibration API and `localStorage`.
+- **Tests:** Node's built-in test runner (`node --test`) for unit tests, and the locally installed Playwright 1.56 with Chromium for browser tests.
 
 ```
 src/
@@ -185,14 +186,16 @@ src/
     bot.ts         §5.3 test player
     curve.ts       §5.4 settings per level
     worker.ts
-  render/        PixiJS views; subscribe to core events
-    boardView.ts, trayView.ts, effects.ts, tweens.ts
+  render/        DOM + Canvas 2D views; subscribe to core events
+    boardView.ts, trayView.ts, particles.ts (canvas layer), tweens.ts
   themes/        one folder per theme + registry
   audio/         Web Audio sound effects + music layers, low-pass for danger
   ui/            HTML/CSS menu screens and overlays
   platform/      Capacitor bridges: haptics, back button, lifecycle, immersive mode
   storage/       versioned save with automatic backup copy
-android/         Capacitor-generated Android project
+scripts/build.mjs  strip types + bundle into dist/index.html
+test/              node:test unit tests; e2e/ Playwright specs
+android/         Capacitor Android project (generated in CI)
 .github/workflows/build-apk.yml
 ```
 
@@ -228,7 +231,7 @@ android/         Capacitor-generated Android project
 ## 11. Testing
 
 - **Unit tests:** free-tile calculation, tray matching, the lose condition at the limit, undo, every power-up, every special tile, stars, combo and economy.
-- **Generator check:** 10,000 seeds checked by a separate exhaustive checker. Every level must be solvable, and the difficulty bands must fall within their ranges. Runs on every build.
+- **Generator check:** 10,000 seeds per run. Each level carries the winning move sequence it was built from. That sequence is replayed through the real rules engine (`core/game.ts`), not the generator's own simulation, and must end in a win without the tray reaching the limit. Difficulty-band win rates must fall within their ranges. Runs on every build.
 - **Visual check:** Playwright screenshots of every screen in every theme at 13R dimensions (1264×2780, portrait), reviewed before each milestone.
 - **Performance:** a stress board of 120 tiles with a maximum particle burst. Frame time must stay under 8.3 ms (the budget for 120 fps) in a headless Chrome profiling run with 4× CPU throttling, used as a stand-in for a phone. Real smoothness is then confirmed on the 13R during the user's playtests.
 - **Playtests:** the user plays at each milestone, and their feedback drives the polish.
