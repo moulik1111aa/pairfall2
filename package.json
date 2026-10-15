@@ -1,9 +1,9 @@
 {
   "name": "pairfall",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Pairfall — a Zen Match–style pair-matching tile game for Android",
+  "description": "Pairfall \u2014 a Zen Match\u2013style pair-matching tile game for Android",
   "scripts": {
     "setup:local": "sh scripts/link-tools.sh",
     "typecheck": "tsc --noEmit -p .",
@@ -11,7 +11,8 @@
     "build": "node scripts/build.mjs",
     "serve": "node scripts/serve.mjs",
     "e2e": "playwright test",
-    "check": "npm run typecheck && npm test && npm run build && npm run e2e"
+    "check": "npm run typecheck && npm test && npm run gencheck && npm run build && npm run e2e",
+    "gencheck": "node scripts/gencheck.mjs"
   },
   "devDependencies": {
     "playwright": "1.56.0",

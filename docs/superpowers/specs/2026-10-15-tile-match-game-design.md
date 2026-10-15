@@ -47,6 +47,11 @@ All numbers below live in one tunable config file. They are starting values, not
 | +1 Slot | Raises the tray limit by 1 for this attempt | 60 |
 | Continue (lose screen only) | Applies +1 Slot and resumes; once per attempt | 80 |
 
+- Hint uses a small solver to find a move that keeps the level winnable; it highlights both tiles when the move starts a fully visible pair. If no safe move exists it says so and charges nothing.
+- Shuffle rearranges the kinds still on the board (wilds stay put) and only applies an arrangement the solver confirms is winnable; if none exists, nothing is charged.
+- In Zen mode power-ups are free and +1 Slot is not offered.
+- A tile combo bonus is capped at 20 coins per level.
+
 - **Coins earned:**
   - +10 per level cleared;
   - +5 per star;
@@ -61,9 +66,11 @@ Special tiles are introduced in this order, each first appearing at the level sh
 | Tile | From level | Behaviour |
 |---|---|---|
 | Mystery | 12 | Drawn face-down until it becomes free, then flips to show its kind |
-| Frozen | 20 | Has a thaw counter starting at 2. Each pair cleared anywhere on the board lowers it by 1. Can't be tapped until it reaches 0 |
+| Frozen | 20 | Has a thaw counter starting at 2 (3 from level 60). Each pair cleared **while the tile is uncovered** lowers it by 1. Can't be tapped until it reaches 0. *(Revised 2026-10-15: counting every clear from the start thawed all ice after two moves.)* |
 | Lock & Key | 28 | A padlocked tile can't be tapped until both tiles of its key pair (marked with a key badge) are cleared |
-| Wild | 35 (rare) | Takes the place of one tile in some pair and matches any tile. If the tray is empty, it waits in the tray and matches the next tile that arrives |
+| Wild | 35 (rare) | Takes the place of one tile in some pair and clears with the oldest waiting tile (wilds never match each other). If the tray is empty, it waits and clears with the next tile. If its match leaves a tile without a twin, that tile turns wild, so the board always stays completable. *(Revised 2026-10-15.)* |
+
+**No moves left:** if every tile still on the board is frozen or locked and nothing can free it, the level is lost ("No moves left"). Continue cannot rescue this.
 
 ## 5. Level generation
 
