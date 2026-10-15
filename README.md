@@ -7,7 +7,7 @@ the level is lost. Every level is generated, and every level can be won.
 ## Install on your phone
 
 1. On your Android phone, open
-   **https://github.com/moulik1111aa/pairfall/releases/latest/download/Pairfall.apk**
+   **https://github.com/moulik1111aa/pairfall2/releases/latest/download/Pairfall.apk**
    (this link always gives the newest version).
 2. Open the downloaded file. If Android asks, allow installs from your browser
    (only the first time), then tap **Install**.
