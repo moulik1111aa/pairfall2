@@ -6,7 +6,7 @@ import { winRate } from './bot.ts';
 import { BANDS, settingsFor, type Band, type LevelSettings } from './curve.ts';
 
 /** Bump when generation changes in a way that alters layouts. */
-export const GENERATOR_VERSION = 1;
+export const GENERATOR_VERSION = 2;
 export const MAX_ATTEMPTS = 50;
 export const BOT_PLAYS = 300;
 

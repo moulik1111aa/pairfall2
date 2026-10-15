@@ -68,6 +68,30 @@ test('a wild waiting in the tray clears with the next tile', () => {
   assert.ok(r.won);
 });
 
+test('wilds never match each other', () => {
+  const r = new Rules({ slots: row(4), kinds: [WILD, WILD, 3, 3], limit: 4 });
+  r.tap(0);
+  assert.equal(r.tap(1), TapResult.ToTray);
+  assert.equal(r.tap(2), TapResult.Cleared);
+  assert.equal(r.lastPartner, 0);
+});
+
+test('a wild that leaves a tile without a twin passes the wild on', () => {
+  // kinds: 5 has an odd count (the wild's intended partner); using the wild on kind 7 instead
+  // leaves one 7 without a twin, so that 7 becomes wild and the board stays completable.
+  const r = new Rules({ slots: row(6), kinds: [7, WILD, 7, 5, 9, 9], limit: 5 });
+  r.tap(0); // 7 waits
+  r.tap(1); // wild clears the 7
+  assert.equal(r.lastWildified, 2);
+  assert.equal(r.kinds[2], WILD);
+  r.tap(3); // 5 waits
+  r.tap(2); // new wild clears the 5
+  assert.equal(r.lastWildified, -1);
+  r.tap(4);
+  r.tap(5);
+  assert.ok(r.won);
+});
+
 test('a normal match is preferred over a waiting wild', () => {
   const r = new Rules({ slots: row(4), kinds: [WILD, 2, 2, 8], limit: 4 });
   r.tap(0);
@@ -118,4 +142,15 @@ test('reassign changes kinds of board tiles and clears undo history', () => {
   assert.deepEqual(g.kinds, [0, 0, 1, 1]);
   assert.equal(g.canUndo(), false);
   assert.throws(() => g.reassign(new Map([[0, 5]])), /not on the board/);
+});
+
+test('the game is lost when nothing left can be tapped', () => {
+  // slot 2 is frozen and needs a clear, but the only other tile is its twin in the tray
+  const g = new Game({ slots: row(3), kinds: [4, 6, 6], limit: 4, specials: { frozen: { 2: 1 } } }, () => 0);
+  g.tap(1); // 6 waits; slot 2 (the other 6) is frozen, slot 0 is free
+  const ev = g.tap(0); // 4 waits; now nothing is tappable
+  assert.ok(ev.some((e) => e.type === 'lose'));
+  assert.equal(g.lossReason, 'stuck');
+  g.addSlot();
+  assert.equal(g.status, 'lost', '+1 slot cannot rescue a stuck board');
 });

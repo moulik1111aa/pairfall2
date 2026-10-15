@@ -6,7 +6,8 @@
 //    target peak. Replaying the order is therefore a guaranteed win.
 
 import { Board, buildGeometry } from '../core/board.ts';
-import type { LevelData } from '../core/game.ts';
+import type { LevelData } from '../core/rules.ts';
+import { placeSpecials, NO_SPECIALS, type SpecialQuota } from './specials.ts';
 import { createRng } from '../core/rng.ts';
 import { makeShape, type ShapeName } from './shapes.ts';
 
@@ -28,6 +29,8 @@ export interface GenSettings {
    * after other tiles are cleared. The rest are visible pairs (both tiles free at once).
    */
   readonly buried: number;
+  /** Special tiles to place (none when omitted). */
+  readonly specials?: SpecialQuota;
 }
 
 export interface GeneratedLevel extends LevelData {
@@ -125,5 +128,6 @@ export function generate(settings: GenSettings, seed: number): GeneratedLevel {
   }
   if (open.length || pool.length) throw new Error('generator left unmatched pairs');
 
-  return { slots, kinds, limit: settings.limit, seed, solution: order, peak };
+  const placed = placeSpecials(slots, kinds, settings.limit, order, settings.specials ?? NO_SPECIALS, rng);
+  return { slots, kinds: placed.kinds, specials: placed.specials, limit: settings.limit, seed, solution: order, peak };
 }

@@ -2,12 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generate, MAX_PAIRS_PER_KIND, THEME_KINDS } from '../src/gen/generator.ts';
 import { settingsFor, bandFor, type Band } from '../src/gen/curve.ts';
-import { Game } from '../src/core/game.ts';
+import { Game, WILD } from '../src/core/game.ts';
 
 /** Representative levels for each band. */
 const levelsFor = (band: Band) => {
   const out: number[] = [];
-  for (let n = 1; out.length < 25; n++) if (bandFor(n) === band) out.push(n);
+  for (let n = 1; out.length < 40; n++) if (bandFor(n) === band) out.push(n);
   return out;
 };
 
@@ -32,17 +32,33 @@ for (const band of ['easy', 'normal', 'hard'] as const) {
   });
 }
 
-test('every kind appears an even number of times, at most 4 pairs, within the theme set', () => {
+test('kinds come in pairs (one odd kind per wild), at most 4 pairs, within the theme set', () => {
   for (let i = 0; i < 200; i++) {
     const lv = generate(settingsFor(1 + (i % 120)), i);
     const counts = new Map<number, number>();
     for (const k of lv.kinds) counts.set(k, (counts.get(k) ?? 0) + 1);
+    const wilds = counts.get(WILD) ?? 0;
+    counts.delete(WILD);
+    let odd = 0;
     for (const [k, c] of counts) {
       assert.ok(k >= 0 && k < THEME_KINDS);
-      assert.equal(c % 2, 0);
+      if (c % 2) odd++;
       assert.ok(c <= 2 * MAX_PAIRS_PER_KIND, `kind ${k} appears ${c} times`);
     }
+    assert.equal(odd, wilds);
   }
+});
+
+test('special tiles appear from their introduction levels', () => {
+  const sp = (n: number) => generate(settingsFor(n), 3).specials ?? {};
+  assert.equal(sp(11).mystery?.length ?? 0, 0);
+  assert.ok((sp(12).mystery?.length ?? 0) > 0);
+  assert.equal(Object.keys(sp(19).frozen ?? {}).length, 0);
+  assert.ok(Object.keys(sp(21).frozen ?? {}).length > 0);
+  assert.equal(sp(27).locks?.length ?? 0, 0);
+  assert.ok((sp(29).locks?.length ?? 0) > 0);
+  assert.ok(!generate(settingsFor(34), 3).kinds.includes(WILD));
+  assert.ok(generate(settingsFor(35), 3).kinds.includes(WILD));
 });
 
 test('the same seed gives an identical level', () => {

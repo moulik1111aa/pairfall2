@@ -25,6 +25,7 @@ export type GameEvent =
   | { type: 'chilled'; slots: number[] }
   | { type: 'unlocked'; slots: number[] }
   | { type: 'shuffled'; slots: number[] }
+  | { type: 'wildified'; slot: number }
   | { type: 'danger' }
   | { type: 'dangerEnd' }
   | { type: 'undone'; slot: number; kind: number }
@@ -48,6 +49,8 @@ export class Game {
   powerupsUsed = 0;
   /** Set once Continue has been used this attempt. */
   continued = false;
+  /** Why the game was lost: the tray filled, or no tile can be tapped any more. */
+  lossReason: 'tray' | 'stuck' | null = null;
   private lastClearAt = -Infinity;
   private inDanger = false;
   private readonly history: HistoryEntry[] = [];
@@ -115,10 +118,12 @@ export class Game {
     if (r.lastChilled.length) events.push({ type: 'chilled', slots: [...r.lastChilled] });
     if (r.lastThawed.length) events.push({ type: 'thawed', slots: [...r.lastThawed] });
     if (r.lastUnlocked.length) events.push({ type: 'unlocked', slots: [...r.lastUnlocked] });
+    if (r.lastWildified >= 0) events.push({ type: 'wildified', slot: r.lastWildified });
     events.push({ type: 'trayChanged', tray: this.tray });
 
     if (r.lost) {
       this.status = 'lost';
+      this.lossReason = 'tray';
       events.push({ type: 'lose' });
       return events;
     }
@@ -126,6 +131,11 @@ export class Game {
     if (r.won) {
       this.status = 'won';
       events.push({ type: 'win' });
+    } else if (r.tappable().length === 0) {
+      // Everything left is frozen or locked with nothing able to free it.
+      this.status = 'lost';
+      this.lossReason = 'stuck';
+      events.push({ type: 'lose' });
     }
     return events;
   }
@@ -151,7 +161,10 @@ export class Game {
   addSlot(): GameEvent[] {
     this.rules.limit++;
     const events: GameEvent[] = [];
-    if (this.status === 'lost' && !this.rules.lost) this.status = 'playing';
+    if (this.status === 'lost' && this.lossReason === 'tray' && !this.rules.lost) {
+      this.status = 'playing';
+      this.lossReason = null;
+    }
     this.updateDanger(events);
     return events;
   }
