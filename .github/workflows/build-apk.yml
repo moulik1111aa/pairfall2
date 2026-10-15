@@ -72,8 +72,6 @@ jobs:
           npm run build 2>&1 | tee -a ci.log
 
       - name: Generate the Android project
-        env:
-          PAIRFALL_VERSION_CODE: ${{ github.run_number }}
         run: |
           set -o pipefail
           node scripts/android.mjs 2>&1 | tee -a ci.log
@@ -170,12 +168,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           V=$(node -p "require('./package.json').version")
-          TAG="v$V-build.${{ github.run_number }}"
+          CODE=$((GITHUB_RUN_NUMBER + 100))   # same version code as scripts/android.mjs
+          TAG="v$V-build.$CODE"
           {
-            echo "**Pairfall $V, build ${{ github.run_number }}**"
+            echo "**Pairfall $V, build $CODE**"
             echo
             echo "$(git log -1 --pretty=%s)"
             echo
             echo "Install: download **Pairfall.apk** below on your phone and open it. Updates install over the old version and keep your progress."
           } > notes.md
-          gh release create "$TAG" Pairfall.apk --title "Pairfall $V (build ${{ github.run_number }})" --notes-file notes.md --latest
+          gh release create "$TAG" Pairfall.apk --title "Pairfall $V (build $CODE)" --notes-file notes.md --latest
