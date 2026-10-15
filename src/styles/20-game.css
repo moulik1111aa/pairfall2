@@ -2,7 +2,7 @@
 .hud{position:relative;z-index:7000;display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:12px;
   padding:calc(var(--safe-top) + 6px) 16px 6px}
 .hud-title{text-align:center;font-family:var(--font-display);font-size:22px;font-weight:700;line-height:1.1}
-.hud-title small{display:block;font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--accent-deep);margin-top:2px}
+.hud-title small{display:block;font-family:var(--font-ui);font-size:14px;font-weight:600;color:var(--accent-deep);margin-top:2px}
 .play-area{position:relative;flex:1;padding-bottom:var(--safe-bottom)}
 .stage{position:absolute;inset:0 0 var(--safe-bottom) 0}
 .tiles{position:absolute;inset:0;pointer-events:none}
@@ -71,8 +71,8 @@
 /* Power-up bar */
 .powerbar{position:absolute;left:0;right:0;bottom:calc(var(--safe-bottom) + 10px);z-index:7000;display:flex;justify-content:center;gap:10px;padding:0 12px}
 .powerbar.left-handed{flex-direction:row-reverse}
-.pu{appearance:none;border:0;cursor:pointer;position:relative;width:62px;height:62px;border-radius:18px;display:grid;place-items:center;align-content:center;gap:2px;
-  background:var(--surface);color:var(--ink);box-shadow:0 5px 0 var(--tray-edge),inset 0 0 0 2px var(--tray-edge);font:600 11px/1 var(--font-ui)}
+.pu{appearance:none;border:0;cursor:pointer;position:relative;width:68px;height:66px;border-radius:18px;display:grid;place-items:center;align-content:center;gap:2px;
+  background:var(--surface);color:var(--ink);box-shadow:0 5px 0 var(--tray-edge),inset 0 0 0 2px var(--tray-edge);font:700 13px/1 var(--font-ui)}
 .pu svg{width:26px;height:26px}
 .pu:active{transform:translateY(3px);box-shadow:0 2px 0 var(--tray-edge),inset 0 0 0 2px var(--tray-edge)}
 .pu:disabled{opacity:.45;cursor:default}

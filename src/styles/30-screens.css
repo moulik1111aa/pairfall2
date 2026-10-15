@@ -15,8 +15,8 @@
 .mode-btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--tray-edge),inset 0 0 0 2px var(--tray-edge)}
 .mode-btn svg{flex:0 0 26px;width:26px;height:26px;color:var(--accent-deep)}
 .mode-btn span{display:grid;gap:2px;min-width:0}
-.mode-btn b{font-size:15px}
-.mode-btn small{font-size:12px;color:var(--ink-soft);line-height:1.25}
+.mode-btn b{font-size:17px}
+.mode-btn small{font-size:14px;color:var(--ink-soft);line-height:1.25}
 .small-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .unlock-note{margin-top:-6px!important;color:var(--ink)!important}
 
@@ -70,7 +70,7 @@
 .setting{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--well);cursor:pointer}
 .setting:last-child{border-bottom:0}
 .setting span{display:grid;gap:3px;min-width:0}
-.setting small{color:var(--ink-soft);font-size:13px;line-height:1.35}
+.setting small{color:var(--ink-soft);font-size:15px;line-height:1.35}
 .setting input{appearance:none;flex:0 0 52px;width:52px;height:32px;border-radius:16px;background:var(--well);box-shadow:inset 0 0 0 2px var(--tray-edge);position:relative;cursor:pointer;transition:background .15s}
 .setting input::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
 .setting input:checked{background:var(--accent-deep)}

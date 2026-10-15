@@ -1,11 +1,16 @@
-# Builds the signed Pairfall APK on every push to main and publishes it as a
-# GitHub Release. The newest APK is always at:
+# Builds the signed Pairfall APK on every push to main, launches it on an
+# Android 15 emulator, and only then publishes it as a GitHub Release.
+# The newest APK is always at:
 #   https://github.com/<owner>/<repo>/releases/latest/download/Pairfall.apk
 #
 # Signing: native/android/pairfall-release.jks.gpg is the release keystore,
 # encrypted with the PAIRFALL_SIGNING_PASSWORD repository secret (which is also
 # the keystore password). Every update must be signed with this same key, or
 # Android refuses to install it over the previous version.
+#
+# Results for whoever is working on the app (screenshots, logcat, build logs)
+# are pushed to the `ci-results` branch, since workflow artifacts and logs are
+# not always reachable from where the code is written.
 name: Build APK
 
 on:
@@ -54,20 +59,24 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Install
-        run: npm install --no-audit --no-fund
+        run: npm install --no-audit --no-fund 2>&1 | tee -a ci.log
 
       - name: Type-check and unit tests
         run: |
-          npm run typecheck
-          npm test
+          set -o pipefail
+          { npm run typecheck && npm test; } 2>&1 | tee -a ci.log
 
       - name: Build the game
-        run: npm run build
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee -a ci.log
 
       - name: Generate the Android project
         env:
           PAIRFALL_VERSION_CODE: ${{ github.run_number }}
-        run: node scripts/android.mjs
+        run: |
+          set -o pipefail
+          node scripts/android.mjs 2>&1 | tee -a ci.log
 
       - name: Unlock the signing key
         env:
@@ -84,23 +93,77 @@ jobs:
           PAIRFALL_KEY_ALIAS: pairfall
           PAIRFALL_KEY_PASSWORD: ${{ secrets.PAIRFALL_SIGNING_PASSWORD }}
         run: |
+          set -o pipefail
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon --stacktrace
+          ./gradlew assembleRelease --no-daemon --stacktrace 2>&1 | tee -a ../ci.log
 
       - name: Verify the signature
         run: |
+          rm -f "$RUNNER_TEMP/pairfall-release.jks"
           APK=android/app/build/outputs/apk/release/app-release.apk
           BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
           "$BT/apksigner" verify --verbose --print-certs "$APK" | tee signature.txt
           grep -qi "certificate SHA-256 digest: $CERT_SHA256" signature.txt || { echo "::error::APK is not signed with the Pairfall release key"; exit 1; }
           cp "$APK" Pairfall.apk
           ls -l Pairfall.apk
-          rm -f "$RUNNER_TEMP/pairfall-release.jks"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Pairfall-build-${{ github.run_number }}
+          name: apk
           path: Pairfall.apk
+          retention-days: 14
+
+      - name: Share the build log if something failed
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p ci-results && tail -n 400 ci.log > ci-results/build-log.txt 2>/dev/null || true
+          bash scripts/push-ci-results.sh "Build ${{ github.run_number }} failed"
+
+  smoke:
+    needs: apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: apk
+
+      - name: Enable hardware acceleration for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Launch and play on an Android 15 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash scripts/smoke-android.sh Pairfall.apk ci-results
+
+      - name: Share screenshots and logs
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/push-ci-results.sh "Smoke test for build ${{ github.run_number }} (${{ job.status }})"
+
+  release:
+    needs: [apk, smoke]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: apk
 
       - name: Publish the release
         env:

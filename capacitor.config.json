@@ -3,6 +3,7 @@
   "appName": "Pairfall",
   "webDir": "www",
   "backgroundColor": "#D9E4DC",
+  "loggingBehavior": "production",
   "android": {
     "backgroundColor": "#D9E4DC",
     "allowMixedContent": false,
