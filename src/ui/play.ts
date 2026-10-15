@@ -18,7 +18,9 @@ import { homeScreen } from './home.ts';
 import { mapScreen } from './map.ts';
 import { reducedMotion } from '../render/tweens.ts';
 import { settingsToggles } from './settings.ts';
-import { prepareTiles, prepareIce, tileUrls, MYSTERY_IMAGE, WILD_IMAGE } from '../themes/prerender.ts';
+import { TEXT, SPECIALS } from './i18n.ts';
+import { specialPicture, type SpecialKey } from './help.ts';
+import { prepareTiles, prepareIce } from '../themes/prerender.ts';
 
 declare global {
   interface Window {
@@ -34,24 +36,6 @@ const POWERUPS: { id: PowerupId; label: string }[] = [
   { id: 'extraSlot', label: '+1 Slot' },
 ];
 
-const INTROS: Record<string, { title: string; text: string }> = {
-  mystery: {
-    title: 'Face-down tiles',
-    text: 'These tiles hide their picture until the tiles on top of them are cleared.',
-  },
-  frozen: {
-    title: 'Frozen tiles',
-    text: 'Ice holds a tile in place. Every pair you clear while it is uncovered melts it a little; the number shows how many pairs are left.',
-  },
-  locks: {
-    title: 'Locked tiles',
-    text: 'A padlocked tile opens once both tiles marked with a key have been cleared.',
-  },
-  wild: {
-    title: 'Wild tile',
-    text: 'The golden circle matches any tile. If that leaves a tile without its twin, the wild passes to that tile.',
-  },
-};
 
 /** Journey level number, or a full play mode. */
 export function playScreen(m: number | PlayMode) {
@@ -129,7 +113,7 @@ export function playScreen(m: number | PlayMode) {
       let how: Payment = 'none';
       app.save.update((d) => (how = pay(d, id)));
       if (how === 'none') {
-        app.toast(`Not enough coins for ${POWERUPS.find((p) => p.id === id)!.label}. Win levels to earn more.`);
+        app.toast(TEXT.notEnoughCoins(POWERUPS.find((p) => p.id === id)!.label));
         return null;
       }
       game!.powerupsUsed++;
@@ -150,7 +134,7 @@ export function playScreen(m: number | PlayMode) {
       switch (id) {
         case 'undo': {
           if (!g.canUndo()) {
-            app.toast('Undo takes back a tile that is still waiting in the tray.');
+            app.toast(TEXT.undoNothing);
             break;
           }
           if (!charge(id)) break;
@@ -160,7 +144,7 @@ export function playScreen(m: number | PlayMode) {
         case 'hint': {
           const slots = hint(g.rules);
           if (!slots.length) {
-            app.toast('No safe move left. Try Undo, Shuffle or +1 Slot.');
+            app.toast(TEXT.noSafeMove);
             break;
           }
           if (!charge(id)) break;
@@ -173,7 +157,7 @@ export function playScreen(m: number | PlayMode) {
           const next = shuffle(g.rules, rng);
           if (!next) {
             giveBack(id, how);
-            app.toast('No better arrangement exists for these tiles. Nothing was charged.');
+            app.toast(TEXT.shuffleNothing);
             break;
           }
           s.apply(g.reassign(next));
@@ -287,7 +271,7 @@ export function playScreen(m: number | PlayMode) {
         `<h2>Level ${n} cleared</h2>
          <div class="stars" aria-label="${stars} of 3 stars">${[1, 2, 3].map((i) => starIcon(i <= stars)).join('')}</div>
          <div class="reward">${coinLine(coins)}${g.bestCombo >= 2 ? `<span>Best combo <b>×${g.bestCombo}</b></span>` : ''}</div>
-         ${unlock ? `<p class="unlock-note">New theme unlocked: <b>${unlock}</b>. Switch to it from Themes on the home screen.</p>` : ''}`,
+         ${unlock ? `<p class="unlock-note">${app.t(TEXT.themeUnlocked(unlock))}</p>` : ''}`,
         [
           { label: `Play level ${n + 1}`, run: () => app.show(playScreen(n + 1)) },
           { label: 'Journey map', kind: 'secondary', back: true, run: () => app.show(mapScreen) },
@@ -327,15 +311,15 @@ export function playScreen(m: number | PlayMode) {
       sheet = openSheet(
         el,
         stuck
-          ? `<h2>No moves left</h2><p>Every tile that is left is frozen or locked, and nothing can free it. Clear pairs near frozen tiles earlier next time.</p>`
-          : `<h2>Tray full</h2><p>${g.limit} tiles were waiting for their twins. Try finishing a pair before starting a new one.</p>`,
+          ? `<h2>${app.t(TEXT.stuckTitle)}</h2><p>${app.t(TEXT.stuck)}</p>`
+          : `<h2>${app.t(TEXT.trayFullTitle)}</h2><p>${app.t(TEXT.trayFull(g.limit))}</p>`,
         actions,
         stuck ? 'No moves left' : 'Tray full',
       );
     };
 
     // ── Special-tile introductions ───────────────────────────────────────────
-    const pendingIntros = (level: Level): string[] => {
+    const pendingIntros = (level: Level): SpecialKey[] => {
       const sp = level.specials ?? {};
       const has: Record<string, boolean> = {
         mystery: !!sp.mystery?.length,
@@ -343,26 +327,16 @@ export function playScreen(m: number | PlayMode) {
         locks: !!sp.locks?.length,
         wild: level.kinds.includes(WILD),
       };
-      return Object.keys(INTROS).filter((k) => has[k] && !app.save.data.seenIntro.includes(k));
+      return (Object.keys(SPECIALS) as SpecialKey[]).filter((k) => has[k] && !app.save.data.seenIntro.includes(k));
     };
 
-    const showIntros = (keys: string[], done: () => void) => {
+    const showIntros = (keys: SpecialKey[], done: () => void) => {
       const key = keys[0];
       if (!key) return done();
-      const urls = tileUrls(app.theme);
-      const pic = (i: number, extra = '') =>
-        `<div class="intro-tile tile" style="--tile-w:96px;background-image:url('${urls[i]}')">${extra}</div>`;
-      const picture =
-        key === 'mystery'
-          ? pic(MYSTERY_IMAGE)
-          : key === 'wild'
-            ? pic(WILD_IMAGE)
-            : key === 'frozen'
-              ? pic(3, '<div class="ice"><b>2</b></div>')
-              : pic(6, `<div class="padlock">${ICONS.lock.replace('currentColor', '#F2B33D').replace('currentColor', '#26324A')}</div>`);
+      const picture = specialPicture(app, key);
       sheet = openSheet(
         el,
-        `${picture}<h2>${INTROS[key].title}</h2><p>${INTROS[key].text}</p>`,
+        `${picture}<h2>${app.t(SPECIALS[key].title)}</h2><p>${app.t(SPECIALS[key].text)}</p>`,
         [
           {
             label: 'Got it',
@@ -374,7 +348,7 @@ export function playScreen(m: number | PlayMode) {
             },
           },
         ],
-        INTROS[key].title,
+        SPECIALS[key].title.en,
       );
     };
 
@@ -423,7 +397,7 @@ export function playScreen(m: number | PlayMode) {
           });
           area.appendChild(bar!);
           renderBar();
-          if (level.settings.tutorial && mode.kind === 'journey') tutorial = new Tutorial(area, n, g, stage);
+          if (level.settings.tutorial && mode.kind === 'journey') tutorial = new Tutorial(area, n, g, stage, app.hindi);
           if (mode.kind === 'journey') prefetch(n + 1);
           if (app.debug) window.__pairfall = { level, game: g, tap: onTap, use: usePowerup };
         };

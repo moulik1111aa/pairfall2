@@ -44,7 +44,8 @@ test('android shell: back button, keep-awake, haptics, bar style and save mirror
 
   // Home: the first press warns, the second leaves.
   await pressBack(page);
-  await expect(page.locator('.toast')).toHaveText('Press back again to leave');
+  await expect(page.locator('.toast')).toContainText('Press back again to leave');
+  await expect(page.locator('.toast .hi')).toHaveText('बाहर जाने के लिए फिर से बैक दबाएँ');
   await pressBack(page);
   expect(await calls(page)).toContain('exit');
 

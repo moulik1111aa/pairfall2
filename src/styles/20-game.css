@@ -48,7 +48,7 @@
   animation:point 1.1s ease-in-out infinite}
 @keyframes point{0%,100%{transform:translate(0,0)}50%{transform:translate(4px,10px)}}
 .coach{position:absolute;z-index:7500;left:16px;right:16px;top:calc(var(--safe-top) + 64px);text-align:center;pointer-events:none}
-.coach span{display:inline-block;background:var(--surface);border-radius:14px;padding:10px 16px;font-weight:600;box-shadow:inset 0 0 0 2px var(--tray-edge)}
+.coach>span{display:inline-block;background:var(--surface);border-radius:14px;padding:10px 16px;font-weight:600;box-shadow:inset 0 0 0 2px var(--tray-edge)}
 
 /* Special tiles */
 

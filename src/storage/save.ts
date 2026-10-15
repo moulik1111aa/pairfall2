@@ -15,6 +15,8 @@ export interface Settings {
   vibration: boolean;
   colorBlind: boolean;
   leftHanded: boolean;
+  /** Show instructions in Hindi under the English. */
+  hindi: boolean;
 }
 
 export interface SaveData {
@@ -48,7 +50,7 @@ export function freshSave(): SaveData {
     stars: {},
     theme: 'zen-garden',
     powerups: { undo: free, hint: free, shuffle: free, xray: free, extraSlot: free },
-    settings: { sound: true, music: true, vibration: true, colorBlind: false, leftHanded: false },
+    settings: { sound: true, music: true, vibration: true, colorBlind: false, leftHanded: false, hindi: true },
     stats: { played: 0, won: 0, bestCombo: 0, pairs: 0 },
     tutorialDone: false,
     daily: freshDaily(),

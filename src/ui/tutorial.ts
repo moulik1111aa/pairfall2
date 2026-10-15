@@ -3,6 +3,7 @@
 import type { Game } from '../core/game.ts';
 import type { GameStage } from '../render/gameStage.ts';
 import { ICONS } from './icons.ts';
+import { bi, TEXT, type Bi } from './i18n.ts';
 
 /** A good next tap: complete a tray pair, else start a pair whose twin is also free. */
 export function suggestMove(game: Game): number | null {
@@ -26,9 +27,11 @@ export class Tutorial {
   private done = false;
   private readonly game: Game;
   private readonly stage: GameStage;
+  private readonly hindi: boolean;
 
-  constructor(parent: HTMLElement, level: number, game: Game, stage: GameStage) {
+  constructor(parent: HTMLElement, level: number, game: Game, stage: GameStage, hindi = false) {
     this.level = level;
+    this.hindi = hindi;
     this.game = game;
     this.stage = stage;
     this.pointer = document.createElement('div');
@@ -41,8 +44,8 @@ export class Tutorial {
     this.update();
   }
 
-  private say(text: string): void {
-    this.coach.innerHTML = text ? `<span>${text}</span>` : '';
+  private say(text: Bi): void {
+    this.coach.innerHTML = `<span>${bi(text, this.hindi)}</span>`;
   }
 
   private pointAt(slot: number | null): void {
@@ -62,17 +65,17 @@ export class Tutorial {
     if (this.done) return;
     const g = this.game;
     if (this.level === 1) {
-      if (g.pairsCleared === 0 && g.tray.length === 0) this.say('Tap a tile to move it into the tray');
-      else if (g.pairsCleared === 0) this.say('Now tap its twin to clear the pair');
-      else if (g.pairsCleared < 3) this.say(`Clear pairs before the tray fills — ${g.limit} unmatched tiles and it's over`);
+      if (g.pairsCleared === 0 && g.tray.length === 0) this.say(TEXT.tutorialTap);
+      else if (g.pairsCleared === 0) this.say(TEXT.tutorialTwin);
+      else if (g.pairsCleared < 3) this.say(TEXT.tutorialLimit(g.limit));
       else return this.finish();
       this.pointAt(g.pairsCleared < 2 ? suggestMove(g) : null);
     } else if (this.level === 2) {
-      if (g.pairsCleared < 2) this.say('Dimmed tiles are covered. Clear the tiles on top to free them');
+      if (g.pairsCleared < 2) this.say(TEXT.tutorialCovered);
       else return this.finish();
       this.pointAt(null);
     } else {
-      if (g.pairsCleared < 2) this.say('Plan ahead: start a new pair only when its twin is in reach');
+      if (g.pairsCleared < 2) this.say(TEXT.tutorialPlan);
       else return this.finish();
       this.pointAt(null);
     }

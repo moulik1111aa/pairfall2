@@ -9,6 +9,7 @@ import { Haptics } from '../platform/haptics.ts';
 import { quietly, setSystemBarStyle, type PairfallPlugin } from '../platform/native.ts';
 import type { Feedback } from '../render/feedback.ts';
 import { reducedMotion } from '../render/tweens.ts';
+import { bi, TEXT, type Bi } from './i18n.ts';
 
 export interface Screen {
   el: HTMLElement;
@@ -103,8 +104,8 @@ export class App {
         /* older shell without the back event */
       }
     }
-    if (this.save.loadedFrom === 'backup') this.toast('Your progress was restored from a backup copy.');
-    if (this.save.loadedFrom === 'reset') this.toast('Your saved progress could not be read, so a new game was started.');
+    if (this.save.loadedFrom === 'backup') this.toast(TEXT.restoredFromBackup);
+    if (this.save.loadedFrom === 'reset') this.toast(TEXT.saveUnreadable);
   }
 
   applyTheme(): void {
@@ -177,14 +178,29 @@ export class App {
       return;
     }
     this.lastBackAt = now;
-    this.toast('Press back again to leave', 2000);
+    this.toast(TEXT.pressBackAgain, 2000);
   }
 
-  toast(text: string, ms = 3200): void {
+  /** Show instructions in Hindi as well as English? */
+  get hindi(): boolean {
+    return this.save.data.settings.hindi;
+  }
+
+  /** Markup for an instruction in English, with Hindi when that setting is on. */
+  t(text: Bi): string {
+    return bi(text, this.hindi);
+  }
+
+  /** A short message at the bottom. Instructions (Bi) get Hindi too, and a little longer on screen. */
+  toast(text: string | Bi, ms = 3200): void {
     const t = document.createElement('div');
     t.className = 'toast';
     t.setAttribute('role', 'status');
-    t.textContent = text;
+    if (typeof text === 'string') t.textContent = text;
+    else {
+      t.innerHTML = this.t(text);
+      if (this.hindi) ms = Math.round(ms * 1.5);
+    }
     this.root.appendChild(t);
     setTimeout(() => t.remove(), ms);
   }
