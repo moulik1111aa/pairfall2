@@ -1,0 +1,117 @@
+# Builds the signed Pairfall APK on every push to main and publishes it as a
+# GitHub Release. The newest APK is always at:
+#   https://github.com/<owner>/<repo>/releases/latest/download/Pairfall.apk
+#
+# Signing: native/android/pairfall-release.jks.gpg is the release keystore,
+# encrypted with the PAIRFALL_SIGNING_PASSWORD repository secret (which is also
+# the keystore password). Every update must be signed with this same key, or
+# Android refuses to install it over the previous version.
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk
+  cancel-in-progress: false
+
+env:
+  # SHA-256 of the release certificate; a build signed with anything else is not published.
+  CERT_SHA256: 2d71b94712ef135c6e60b3462ab0b3d79c25dd40d4fa5e276bceeeb60b20787c
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check the signing secret
+        env:
+          PW: ${{ secrets.PAIRFALL_SIGNING_PASSWORD }}
+        run: |
+          if [ -z "$PW" ]; then
+            echo "::error::The PAIRFALL_SIGNING_PASSWORD secret is missing. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Install
+        run: npm install --no-audit --no-fund
+
+      - name: Type-check and unit tests
+        run: |
+          npm run typecheck
+          npm test
+
+      - name: Build the game
+        run: npm run build
+
+      - name: Generate the Android project
+        env:
+          PAIRFALL_VERSION_CODE: ${{ github.run_number }}
+        run: node scripts/android.mjs
+
+      - name: Unlock the signing key
+        env:
+          PW: ${{ secrets.PAIRFALL_SIGNING_PASSWORD }}
+        run: |
+          printf '%s' "$PW" | gpg --batch --yes --quiet --pinentry-mode loopback --passphrase-fd 0 \
+            --output "$RUNNER_TEMP/pairfall-release.jks" --decrypt native/android/pairfall-release.jks.gpg
+
+      - name: Build the signed APK
+        working-directory: android
+        env:
+          PAIRFALL_KEYSTORE: ${{ runner.temp }}/pairfall-release.jks
+          PAIRFALL_KEYSTORE_PASSWORD: ${{ secrets.PAIRFALL_SIGNING_PASSWORD }}
+          PAIRFALL_KEY_ALIAS: pairfall
+          PAIRFALL_KEY_PASSWORD: ${{ secrets.PAIRFALL_SIGNING_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Verify the signature
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/apksigner" verify --verbose --print-certs "$APK" | tee signature.txt
+          grep -qi "certificate SHA-256 digest: $CERT_SHA256" signature.txt || { echo "::error::APK is not signed with the Pairfall release key"; exit 1; }
+          cp "$APK" Pairfall.apk
+          ls -l Pairfall.apk
+          rm -f "$RUNNER_TEMP/pairfall-release.jks"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Pairfall-build-${{ github.run_number }}
+          path: Pairfall.apk
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=$(node -p "require('./package.json').version")
+          TAG="v$V-build.${{ github.run_number }}"
+          {
+            echo "**Pairfall $V, build ${{ github.run_number }}**"
+            echo
+            echo "$(git log -1 --pretty=%s)"
+            echo
+            echo "Install: download **Pairfall.apk** below on your phone and open it. Updates install over the old version and keep your progress."
+          } > notes.md
+          gh release create "$TAG" Pairfall.apk --title "Pairfall $V (build ${{ github.run_number }})" --notes-file notes.md --latest
