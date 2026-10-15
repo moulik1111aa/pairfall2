@@ -75,3 +75,13 @@ test('tile numbers and left-handed layout apply in game', async ({ page }) => {
   });
   expect(numbered).toBe('image/png');
 });
+
+test('preview tools unlock levels for playtesting', async ({ page }) => {
+  await page.goto('/?debug');
+  await page.evaluate(() => localStorage.clear());
+  await page.goto('/?debug');
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByRole('button', { name: /Unlock levels up to 40/ }).click();
+  await page.getByRole('button', { name: 'Home' }).click();
+  await expect(page.getByRole('button', { name: 'Play level 40' })).toBeVisible();
+});

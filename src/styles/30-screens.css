@@ -78,3 +78,6 @@
 .sound-note{max-width:460px;margin:12px auto;padding:12px 16px;border-radius:16px;background:var(--well);color:var(--ink)}
 .danger-zone{max-width:460px;margin:24px auto 0;display:flex;justify-content:center}
 .reset-btn.armed{background:var(--danger)!important;color:#fff!important;box-shadow:0 4px 0 #8E2236!important}
+.preview-tools{max-width:460px;margin:20px auto 0;padding:16px 18px;border-radius:22px;border:2px dashed var(--tray-edge);text-align:center}
+.preview-tools h2{margin:0 0 4px;font-size:17px}
+.preview-tools p{margin:0 0 12px;color:var(--ink-soft);font-size:14px}

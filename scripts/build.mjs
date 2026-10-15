@@ -81,10 +81,9 @@ export function build() {
   const workerSrc = bundle(join(src, 'gen', 'worker.ts'));
   const appSrc = bundle(join(src, 'main.ts'));
   const buildInfo = { version: JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version, builtAt: new Date().toISOString() };
-  const js =
-    `window.__BUILD__=${JSON.stringify(buildInfo)};\n` +
-    `window.__WORKER_SRC__=${JSON.stringify(workerSrc)};\n` +
-    appSrc;
+  const scriptFor = (info) =>
+    `window.__BUILD__=${JSON.stringify(info)};\n` + `window.__WORKER_SRC__=${JSON.stringify(workerSrc)};\n` + appSrc;
+  const js = scriptFor(buildInfo);
   const html = readFileSync(join(src, 'index.html'), 'utf8')
     .replace('/*__CSS__*/', () => css)
     .replace('/*__JS__*/', () => scriptSafe(js));
@@ -92,9 +91,11 @@ export function build() {
   writeFileSync(join(dist, 'index.html'), html);
   // Artifact variant: the host wraps the page in its own document skeleton, so it
   // carries only the title, styles, app root and script.
+  // The shared preview link is a playtest build: it also offers preview tools.
+  const previewJs = scriptFor({ ...buildInfo, preview: true });
   const artifact =
     `<title>Pairfall</title>\n<meta name="theme-color" content="#D9E4DC">\n<style>${css}</style>\n` +
-    `<div id="app" aria-live="polite"></div>\n<script>${scriptSafe(js)}</script>\n`;
+    `<div id="app" aria-live="polite"></div>\n<script>${scriptSafe(previewJs)}</script>\n`;
   writeFileSync(join(dist, 'artifact.html'), artifact);
   return { bytes: Buffer.byteLength(html) };
 }
