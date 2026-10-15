@@ -36,6 +36,7 @@ export class App {
     this.debug = new URLSearchParams(location.search).has('debug');
     const st = this.save.data.settings;
     this.sound = new Sound(st.sound, st.music);
+    this.sound.setTheme(this.theme.sound);
     this.haptics = new Haptics(st.vibration);
     const { sound, haptics } = this;
     this.feedback = {
@@ -95,6 +96,14 @@ export class App {
     for (const [k, v] of Object.entries(this.theme.vars)) s.setProperty(k, v);
     s.setProperty('--backdrop', backdropUrl(this.theme));
     void warmTiles(this.theme);
+  }
+
+  /** Switch theme: saved, applied to the page, and used by sound from now on. */
+  setTheme(theme: Theme): void {
+    this.theme = theme;
+    this.save.update((d) => (d.theme = theme.id));
+    this.sound.setTheme(theme.sound);
+    this.applyTheme();
   }
 
   /** Change one setting, save it and apply it straight away. */

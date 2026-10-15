@@ -31,11 +31,11 @@ test('sound, music and vibration toggles are saved', async ({ page }) => {
   await page.goto('/?debug');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/?debug');
-  await page.getByRole('button', { name: 'Sound settings' }).click();
-  const music = page.locator('#toggle-music');
-  await expect(music).toHaveAttribute('aria-pressed', 'true');
-  await music.click();
-  await expect(music).toHaveAttribute('aria-pressed', 'false');
+  await page.getByRole('button', { name: 'Settings' }).click();
+  const music = page.locator('#set-music');
+  await expect(music).toBeChecked();
+  await page.getByText('Music', { exact: true }).click();
+  await expect(music).not.toBeChecked();
   await page.reload();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pairfall.save')!).settings.music)).toBe(false);
 });

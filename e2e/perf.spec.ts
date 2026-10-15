@@ -6,8 +6,14 @@ import { test, expect } from 'playwright/test';
 // (the same bar as a 95th-percentile frame time under 20 ms).
 test('120-tile board with particle bursts keeps frames smooth under 4× CPU throttling', async ({ page }) => {
   await page.goto('/?debug&level=60');
+  for (let i = 0; i < 20; i++) {
+    if (await page.locator('.stage .tile').count()) break;
+    const b = page.getByRole('button', { name: 'Got it' });
+    if (await b.count()) await b.click();
+    else await page.waitForTimeout(150);
+  }
   await page.waitForFunction(() => !!window.__pairfall);
-  expect(await page.locator('.tile').count()).toBe(120);
+  expect(await page.locator('.stage .tile').count()).toBe(120);
   await page.waitForTimeout(1500); // let the opening deal-in animation finish
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });

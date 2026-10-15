@@ -1,33 +1,76 @@
-// The game screen: HUD, board + tray stage, tutorial, and the pause/win/lose sheets.
+// The game screen for every mode (Journey, Daily, Zen): HUD, board + tray stage,
+// power-up bar, tutorial, special-tile introductions and the pause/win/lose sheets.
 
 import { App, html, type Screen } from './app.ts';
-import { Game } from '../core/game.ts';
+import { Game, WILD } from '../core/game.ts';
 import { starsFor, coinsFor } from '../core/economy.ts';
+import { pay, refund, hint, shuffle, costOf, type Payment } from '../core/powerups.ts';
+import { recordClear, shortDate } from '../core/daily.ts';
+import { createRng } from '../core/rng.ts';
+import { CONFIG, type PowerupId } from '../config.ts';
 import { GameStage } from '../render/gameStage.ts';
 import { getLevel, prefetch } from '../gen/client.ts';
-import type { Level } from '../gen/levels.ts';
+import type { Level, PlayMode } from '../gen/levels.ts';
 import { ICONS, coinsBadge, starIcon } from './icons.ts';
-import { openSheet } from './overlay.ts';
+import { openSheet, type SheetAction } from './overlay.ts';
 import { Tutorial } from './tutorial.ts';
 import { homeScreen } from './home.ts';
 import { mapScreen } from './map.ts';
 import { reducedMotion } from '../render/tweens.ts';
 import { settingsToggles } from './settings.ts';
-import { prepareTiles } from '../themes/prerender.ts';
+import { prepareTiles, tileUrls, MYSTERY_IMAGE, WILD_IMAGE } from '../themes/prerender.ts';
 
 declare global {
   interface Window {
-    __pairfall?: { level: Level; game: Game; tap(slot: number): void };
+    __pairfall?: { level: Level; game: Game; tap(slot: number): void; use(id: PowerupId): void };
   }
 }
 
-export function playScreen(n: number) {
+const POWERUPS: { id: PowerupId; label: string }[] = [
+  { id: 'undo', label: 'Undo' },
+  { id: 'hint', label: 'Hint' },
+  { id: 'shuffle', label: 'Shuffle' },
+  { id: 'xray', label: 'X-ray' },
+  { id: 'extraSlot', label: '+1 Slot' },
+];
+
+const INTROS: Record<string, { title: string; text: string }> = {
+  mystery: {
+    title: 'Face-down tiles',
+    text: 'These tiles hide their picture until the tiles on top of them are cleared.',
+  },
+  frozen: {
+    title: 'Frozen tiles',
+    text: 'Ice holds a tile in place. Every pair you clear while it is uncovered melts it a little; the number shows how many pairs are left.',
+  },
+  locks: {
+    title: 'Locked tiles',
+    text: 'A padlocked tile opens once both tiles marked with a key have been cleared.',
+  },
+  wild: {
+    title: 'Wild tile',
+    text: 'The golden circle matches any tile. If that leaves a tile without its twin, the wild passes to that tile.',
+  },
+};
+
+/** Journey level number, or a full play mode. */
+export function playScreen(m: number | PlayMode) {
+  const mode: PlayMode = typeof m === 'number' ? { kind: 'journey', n: m } : m;
   return (app: App): Screen => {
-    const el = html(`<section class="screen play" aria-label="Level ${n}">
+    const n = mode.kind === 'journey' ? mode.n : 0;
+    const zen = mode.kind === 'zen';
+    const title =
+      mode.kind === 'journey'
+        ? `Level ${n}${n % 10 === 0 && n > 10 ? '<small>Boss level</small>' : ''}`
+        : mode.kind === 'daily'
+          ? `Daily challenge<small>${shortDate(mode.date)}</small>`
+          : 'Zen<small>No tray limit</small>';
+    const name = mode.kind === 'journey' ? `Level ${n}` : mode.kind === 'daily' ? 'Daily challenge' : 'Zen';
+    const el = html(`<section class="screen play" aria-label="${name}">
       <header class="hud">
         <button class="icon-btn pause-btn" aria-label="Pause">${ICONS.pause}</button>
-        <div class="hud-title">Level ${n}${n % 10 === 0 && n > 10 ? '<small>Boss level</small>' : ''}</div>
-        ${coinsBadge(app.save.data.coins)}
+        <div class="hud-title">${title}</div>
+        ${zen ? `<button class="icon-btn new-board" aria-label="New board">${ICONS.shuffle}</button>` : coinsBadge(app.save.data.coins)}
       </header>
       <div class="play-area"><div class="loading" style="position:absolute;inset:0;display:grid;place-items:center;color:var(--ink-soft)">Laying out tiles…</div></div>
     </section>`);
@@ -36,32 +79,193 @@ export function playScreen(n: number) {
     let game: Game | null = null;
     let tutorial: Tutorial | null = null;
     let sheet: HTMLElement | null = null;
+    let bar: HTMLElement | null = null;
     let destroyed = false;
+    let usedSlot = false;
+    const rng = createRng((Date.now() ^ 0x5bd1e995) >>> 0);
 
     const closeSheet = () => {
       sheet?.remove();
       sheet = null;
     };
+    const restart = () => app.show(playScreen(mode));
+    const newZen = () => app.show(playScreen({ kind: 'zen', seed: Math.floor(Math.random() * 1e9) }));
+    const refreshCoins = () => {
+      const c = el.querySelector('.coin-count');
+      if (c) c.textContent = String(app.save.data.coins);
+    };
 
-    const restart = () => app.show(playScreen(n));
+    // ── Power-ups ────────────────────────────────────────────────────────────
+    const renderBar = () => {
+      if (!bar || !game) return;
+      const g = game;
+      for (const b of bar.querySelectorAll<HTMLButtonElement>('.pu')) {
+        const id = b.dataset.id as PowerupId;
+        const free = app.save.data.powerups[id];
+        const badge = b.querySelector<HTMLElement>('.pu-badge')!;
+        if (zen) badge.hidden = true;
+        else if (free > 0) {
+          badge.className = 'pu-badge';
+          badge.textContent = String(free);
+        } else {
+          badge.className = 'pu-badge price';
+          badge.innerHTML = `${ICONS.coin}${costOf(id)}`;
+        }
+        b.disabled =
+          g.status !== 'playing' ||
+          (id === 'undo' && !g.canUndo()) ||
+          (id === 'extraSlot' && (usedSlot || !Number.isFinite(g.limit)));
+        b.setAttribute('aria-label', `${b.dataset.label}${zen ? '' : free > 0 ? `, ${free} free` : `, ${costOf(id)} coins`}`);
+      }
+    };
 
+    const charge = (id: PowerupId): Payment | null => {
+      if (zen) return 'free';
+      let how: Payment = 'none';
+      app.save.update((d) => (how = pay(d, id)));
+      if (how === 'none') {
+        app.toast(`Not enough coins for ${POWERUPS.find((p) => p.id === id)!.label}. Win levels to earn more.`);
+        return null;
+      }
+      game!.powerupsUsed++;
+      refreshCoins();
+      return how;
+    };
+    const giveBack = (id: PowerupId, how: Payment) => {
+      if (zen || how === 'none') return;
+      app.save.update((d) => refund(d, id, how));
+      game!.powerupsUsed--;
+      refreshCoins();
+    };
+
+    const usePowerup = (id: PowerupId) => {
+      const g = game;
+      const s = stage;
+      if (!g || !s || g.status !== 'playing') return;
+      switch (id) {
+        case 'undo': {
+          if (!g.canUndo()) {
+            app.toast('Undo takes back a tile that is still waiting in the tray.');
+            break;
+          }
+          if (!charge(id)) break;
+          s.apply(g.undo());
+          break;
+        }
+        case 'hint': {
+          const slots = hint(g.rules);
+          if (!slots.length) {
+            app.toast('No safe move left. Try Undo, Shuffle or +1 Slot.');
+            break;
+          }
+          if (!charge(id)) break;
+          s.showHint(slots);
+          break;
+        }
+        case 'shuffle': {
+          const how = charge(id);
+          if (!how) break;
+          const next = shuffle(g.rules, rng);
+          if (!next) {
+            giveBack(id, how);
+            app.toast('No better arrangement exists for these tiles. Nothing was charged.');
+            break;
+          }
+          s.apply(g.reassign(next));
+          break;
+        }
+        case 'xray': {
+          if (!charge(id)) break;
+          s.xray(3000);
+          break;
+        }
+        case 'extraSlot': {
+          if (usedSlot || !Number.isFinite(g.limit)) break;
+          if (!charge(id)) break;
+          usedSlot = true;
+          s.apply(g.addSlot());
+          s.limitChanged();
+          break;
+        }
+      }
+      renderBar();
+    };
+
+    // ── Sheets ───────────────────────────────────────────────────────────────
     const showPause = () => {
       if (sheet || !game || game.status !== 'playing') return;
       sheet = openSheet(
         el,
-        `<h2>Paused</h2><p>Level ${n}. Your board stays exactly as you left it.</p>`,
+        `<h2>Paused</h2><p>Your board stays exactly as you left it.</p>`,
         [
           { label: 'Resume', run: closeSheet },
-          { label: 'Restart level', kind: 'secondary', run: restart },
+          { label: zen ? 'New board' : 'Restart', kind: 'secondary', run: zen ? newZen : restart },
           { label: 'Home', kind: 'secondary', run: () => app.show(homeScreen) },
         ],
         'Paused',
       );
-      const sheetEl = sheet.querySelector('.sheet')!;
-      sheetEl.insertBefore(settingsToggles(app), sheetEl.querySelector('.actions'));
+      const box = sheet.querySelector('.sheet')!;
+      box.insertBefore(settingsToggles(app), box.querySelector('.actions'));
     };
 
+    const animateStars = () => {
+      if (reducedMotion() || !sheet) return;
+      sheet.querySelectorAll<SVGElement>('.stars .star').forEach((s, i) => {
+        const lift = i === 1 ? 'translateY(-10px) ' : '';
+        s.animate(
+          [
+            { transform: `${lift}scale(0) rotate(-40deg)`, opacity: 0 },
+            { transform: `${lift}scale(1.25) rotate(8deg)`, opacity: 1, offset: 0.6 },
+            { transform: `${lift}scale(1) rotate(0)`, opacity: 1 },
+          ],
+          { duration: 420, delay: 260 + i * 200, easing: 'ease-out', fill: 'backwards' },
+        );
+      });
+    };
+    const coinLine = (coins: number) =>
+      `<span>${ICONS.coin.replace('<svg', '<svg width="20" height="20" style="vertical-align:-4px"')} <b>+${coins}</b> coins</span>`;
+
     const showWin = (g: Game) => {
+      app.save.update((d) => {
+        d.stats.won++;
+        d.stats.bestCombo = Math.max(d.stats.bestCombo, g.bestCombo);
+        d.stats.pairs += g.pairsCleared;
+      });
+      if (mode.kind === 'zen') {
+        sheet = openSheet(
+          el,
+          `<h2>Board cleared</h2><p>${g.pairsCleared} pairs${g.bestCombo >= 2 ? `, best combo ×${g.bestCombo}` : ''}. Take a breath, then go again.</p>`,
+          [
+            { label: 'New board', run: newZen },
+            { label: 'Home', kind: 'secondary', run: () => app.show(homeScreen) },
+          ],
+          'Board cleared',
+        );
+        return;
+      }
+      if (mode.kind === 'daily') {
+        let first = false;
+        app.save.update((d) => {
+          const r = recordClear(d.daily, mode.date);
+          first = r.first;
+          d.daily = r.state;
+          if (first) d.coins += CONFIG.rewards.daily;
+        });
+        refreshCoins();
+        const streak = app.save.data.daily.streak;
+        sheet = openSheet(
+          el,
+          `<h2>Daily challenge cleared</h2>
+           <p>${first ? `Streak: ${streak} day${streak === 1 ? '' : 's'}. Come back tomorrow to keep it going.` : 'You already cleared today’s challenge, so this one is just for fun.'}</p>
+           ${first ? `<div class="reward">${coinLine(CONFIG.rewards.daily)}</div>` : ''}`,
+          [
+            { label: 'Home', run: () => app.show(homeScreen) },
+            { label: 'Journey map', kind: 'secondary', run: () => app.show(mapScreen) },
+          ],
+          'Daily challenge cleared',
+        );
+        return;
+      }
       const run = { powerupsUsed: g.powerupsUsed, dangerReached: g.dangerReached, comboBonusSteps: g.comboBonusSteps };
       const stars = starsFor(run);
       const coins = coinsFor(run);
@@ -69,77 +273,156 @@ export function playScreen(n: number) {
         d.level = Math.max(d.level, n + 1);
         d.coins += coins;
         d.stars[n] = Math.max(d.stars[n] ?? 0, stars) as 1 | 2 | 3;
-        d.stats.won++;
-        d.stats.bestCombo = Math.max(d.stats.bestCombo, g.bestCombo);
-        d.stats.pairs += g.pairsCleared;
         if (n >= 3) d.tutorialDone = true;
       });
-      el.querySelector('.coin-count')!.textContent = String(app.save.data.coins);
+      refreshCoins();
+      const unlock = n + 1 === 15 ? 'Neon Cosmos' : n + 1 === 30 ? 'Festive India' : '';
       sheet = openSheet(
         el,
         `<h2>Level ${n} cleared</h2>
          <div class="stars" aria-label="${stars} of 3 stars">${[1, 2, 3].map((i) => starIcon(i <= stars)).join('')}</div>
-         <div class="reward"><span>${ICONS.coin.replace('<svg', '<svg width="20" height="20" style="vertical-align:-4px"')} <b>+${coins}</b> coins</span>${g.bestCombo >= 2 ? `<span>Best combo <b>×${g.bestCombo}</b></span>` : ''}</div>`,
+         <div class="reward">${coinLine(coins)}${g.bestCombo >= 2 ? `<span>Best combo <b>×${g.bestCombo}</b></span>` : ''}</div>
+         ${unlock ? `<p class="unlock-note">New theme unlocked: <b>${unlock}</b>. Switch to it from Themes on the home screen.</p>` : ''}`,
         [
           { label: `Play level ${n + 1}`, run: () => app.show(playScreen(n + 1)) },
           { label: 'Journey map', kind: 'secondary', run: () => app.show(mapScreen) },
         ],
         `Level ${n} cleared`,
       );
-      if (!reducedMotion()) {
-        sheet.querySelectorAll<SVGElement>('.stars .star').forEach((s, i) => {
-          s.animate(
-            [
-              { transform: `${i === 1 ? 'translateY(-10px) ' : ''}scale(0) rotate(-40deg)`, opacity: 0 },
-              { transform: `${i === 1 ? 'translateY(-10px) ' : ''}scale(1.25) rotate(8deg)`, opacity: 1, offset: 0.6 },
-              { transform: `${i === 1 ? 'translateY(-10px) ' : ''}scale(1) rotate(0)`, opacity: 1 },
-            ],
-            { duration: 420, delay: 260 + i * 200, easing: 'ease-out', fill: 'backwards' },
-          );
-        });
-      }
+      animateStars();
     };
 
     const showLose = (g: Game) => {
+      const stuck = g.lossReason === 'stuck';
+      const canContinue = !stuck && !zen && !g.continued && app.save.data.coins >= CONFIG.costs.continue;
+      const actions: SheetAction[] = [];
+      if (canContinue) {
+        actions.push({
+          label: `Continue with +1 slot (${CONFIG.costs.continue} coins)`,
+          run: () => {
+            app.save.update((d) => (d.coins -= CONFIG.costs.continue));
+            refreshCoins();
+            g.continued = true;
+            g.powerupsUsed++;
+            closeSheet();
+            stage!.revive();
+            stage!.apply(g.addSlot());
+            stage!.limitChanged();
+            renderBar();
+          },
+        });
+      }
+      actions.push({ label: zen ? 'New board' : 'Try again', kind: canContinue ? 'secondary' : 'primary', run: zen ? newZen : restart });
+      actions.push({
+        label: mode.kind === 'journey' ? 'Journey map' : 'Home',
+        kind: 'secondary',
+        run: () => app.show(mode.kind === 'journey' ? mapScreen : homeScreen),
+      });
       sheet = openSheet(
         el,
-        `<h2>Tray full</h2><p>${g.limit} tiles were waiting for their twins. Try finishing a pair before starting a new one.</p>`,
+        stuck
+          ? `<h2>No moves left</h2><p>Every tile that is left is frozen or locked, and nothing can free it. Clear pairs near frozen tiles earlier next time.</p>`
+          : `<h2>Tray full</h2><p>${g.limit} tiles were waiting for their twins. Try finishing a pair before starting a new one.</p>`,
+        actions,
+        stuck ? 'No moves left' : 'Tray full',
+      );
+    };
+
+    // ── Special-tile introductions ───────────────────────────────────────────
+    const pendingIntros = (level: Level): string[] => {
+      const sp = level.specials ?? {};
+      const has: Record<string, boolean> = {
+        mystery: !!sp.mystery?.length,
+        frozen: !!Object.keys(sp.frozen ?? {}).length,
+        locks: !!sp.locks?.length,
+        wild: level.kinds.includes(WILD),
+      };
+      return Object.keys(INTROS).filter((k) => has[k] && !app.save.data.seenIntro.includes(k));
+    };
+
+    const showIntros = (keys: string[], done: () => void) => {
+      const key = keys[0];
+      if (!key) return done();
+      const urls = tileUrls(app.theme);
+      const pic = (i: number, extra = '') =>
+        `<div class="intro-tile tile" style="--tile-w:96px;background-image:url('${urls[i]}')">${extra}</div>`;
+      const picture =
+        key === 'mystery'
+          ? pic(MYSTERY_IMAGE)
+          : key === 'wild'
+            ? pic(WILD_IMAGE)
+            : key === 'frozen'
+              ? pic(3, '<div class="ice"><b>2</b></div>')
+              : pic(6, `<div class="padlock">${ICONS.lock.replace('currentColor', '#F2B33D').replace('currentColor', '#26324A')}</div>`);
+      sheet = openSheet(
+        el,
+        `${picture}<h2>${INTROS[key].title}</h2><p>${INTROS[key].text}</p>`,
         [
-          { label: 'Try again', run: restart },
-          { label: 'Journey map', kind: 'secondary', run: () => app.show(mapScreen) },
+          {
+            label: 'Got it',
+            run: () => {
+              closeSheet();
+              app.save.update((d) => d.seenIntro.push(key));
+              showIntros(keys.slice(1), done);
+            },
+          },
         ],
-        'Tray full',
+        INTROS[key].title,
       );
     };
 
     el.querySelector('.pause-btn')!.addEventListener('click', showPause);
+    el.querySelector('.new-board')?.addEventListener('click', newZen);
 
-    Promise.all([getLevel(n), prepareTiles(app.theme)]).then(
+    const numbers = app.save.data.settings.colorBlind;
+    Promise.all([getLevel(mode), prepareTiles(app.theme, { numbers })]).then(
       ([level]) => {
         if (destroyed) return;
         area.querySelector('.loading')?.remove();
-        const g = new Game(level);
+        const g = new Game(zen ? { ...level, limit: Infinity } : level);
         game = g;
         app.save.update((d) => d.stats.played++);
         const onTap = (slot: number) => {
           if (!g.canTap(slot)) return;
           stage!.apply(g.tap(slot));
           tutorial?.update();
+          renderBar();
         };
-        stage = new GameStage(area, g, app.theme, {
-          onTap,
-          feedback: app.feedback,
-          onEnd(result) {
-            tutorial?.destroy();
-            if (result === 'won') showWin(g);
-            else showLose(g);
-          },
+
+        bar = html(`<div class="powerbar${app.save.data.settings.leftHanded ? ' left-handed' : ''}" role="toolbar" aria-label="Power-ups">${POWERUPS.filter(
+          (p) => !(zen && p.id === 'extraSlot'),
+        )
+          .map((p) => `<button class="pu" data-id="${p.id}" data-label="${p.label}">${ICONS[p.id]}<span>${p.label}</span><span class="pu-badge"></span></button>`)
+          .join('')}</div>`);
+        bar.addEventListener('click', (e) => {
+          const b = (e.target as HTMLElement).closest<HTMLButtonElement>('.pu');
+          if (b && !b.disabled) usePowerup(b.dataset.id as PowerupId);
         });
-        if (level.settings.tutorial) tutorial = new Tutorial(area, n, g, stage);
-        prefetch(n + 1);
-        if (app.debug) {
-          window.__pairfall = { level, game: g, tap: onTap };
-        }
+
+        const start = () => {
+          if (destroyed) return;
+          stage = new GameStage(area, g, app.theme, {
+            onTap,
+            feedback: app.feedback,
+            bottomReserve: 78,
+            numbers,
+            mystery: level.specials?.mystery,
+            onEnd(result) {
+              tutorial?.destroy();
+              renderBar();
+              if (result === 'won') showWin(g);
+              else showLose(g);
+            },
+          });
+          area.appendChild(bar!);
+          renderBar();
+          if (level.settings.tutorial && mode.kind === 'journey') tutorial = new Tutorial(area, n, g, stage);
+          if (mode.kind === 'journey') prefetch(n + 1);
+          if (app.debug) window.__pairfall = { level, game: g, tap: onTap, use: usePowerup };
+        };
+        const intros = pendingIntros(level);
+        if (intros.length) showIntros(intros, start);
+        else start();
       },
       () => {
         area.innerHTML = `<div style="position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center">

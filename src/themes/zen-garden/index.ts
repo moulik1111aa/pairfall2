@@ -14,6 +14,9 @@ const backdrop = `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="90
 export const zenGarden: Theme = {
   id: 'zen-garden',
   name: 'Zen Garden',
+  unlockLevel: 1,
+  blurb: 'Pastel paper, lotus and koi, soft koto notes.',
+  sound: { scale: [0, 2, 5, 7, 9], base: 293.66, instrument: 'koto', drone: [73.42, 110, 146.83] },
   vars: {
     '--bg': '#D9E4DC',
     '--bg-deep': '#C6D6CB',

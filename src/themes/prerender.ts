@@ -1,14 +1,40 @@
 // Composes each tile design onto a tile body and turns it into a cached image URL,
 // so the board never re-parses SVG while playing.
 import type { Theme } from './types.ts';
+import { WILD_ART, MYSTERY_ART } from './common.ts';
+
+/** Image index of the wild tile and the face-down tile, after the 18 designs. */
+export const WILD_IMAGE = 18;
+export const MYSTERY_IMAGE = 19;
+const WILD_KIND = 99;
+
+/** Which image a tile kind uses. */
+export const imageIndex = (kind: number): number => (kind === WILD_KIND ? WILD_IMAGE : kind);
+
+export interface TileOptions {
+  /** Colour-blind help: a small number in the corner of each design. */
+  readonly numbers?: boolean;
+}
+
+function artFor(theme: Theme, index: number): string {
+  if (index === WILD_IMAGE) return theme.wildArt ?? WILD_ART;
+  if (index === MYSTERY_IMAGE) return theme.mysteryArt ?? MYSTERY_ART;
+  return theme.tiles[index % theme.tiles.length].svg;
+}
+
+const imageCount = (theme: Theme) => theme.tiles.length + 2;
 
 /** Tile artwork aspect: 100 wide × TILE_H tall (face plus visible edge). */
 export const TILE_W = 100;
 export const TILE_H = 120;
 
-export function tileSvg(theme: Theme, kind: number): string {
+export function tileSvg(theme: Theme, index: number, opts: TileOptions = {}): string {
   const { face, faceShade, edge, edgeShade, rim } = theme.tile;
-  const art = theme.tiles[kind % theme.tiles.length].svg;
+  const art = artFor(theme, index);
+  const badge =
+    opts.numbers && index < theme.tiles.length
+      ? `<g><circle cx="83" cy="17" r="11" fill="#26324A"/><text x="83" y="22" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="800" font-size="${index + 1 >= 10 ? 12 : 14}" fill="#FFFFFF">${index + 1}</text></g>`
+      : '';
   // A porcelain tile: shaded face, jade side edge, glossy top highlight.
   // The drop shadow is baked into the image (a CSS filter per tile is costly to composite).
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${TILE_W} ${TILE_H}" width="${TILE_W * 2}" height="${TILE_H * 2}">
@@ -25,50 +51,57 @@ export function tileSvg(theme: Theme, kind: number): string {
   <rect x="6.5" y="6.5" width="87" height="93.5" rx="12.5" fill="none" stroke="#FFFFFF" stroke-width="2.2"/>
   <path d="M12 8 H88 Q92 8 92 12 V22 Q50 30 8 22 V12 Q8 8 12 8Z" fill="url(#b-gloss)" opacity=".7"/>
   <g transform="translate(4 5.5) scale(0.92)">${art}</g>
+  ${badge}
 </svg>`;
 }
 
 const svgCache = new Map<string, string[]>();
 const rasterCache = new Map<string, string[]>();
 const pending = new Map<string, Promise<string[]>>();
+const cacheKey = (theme: Theme, opts: TileOptions) => `${theme.id}:${opts.numbers ? 'n' : ''}`;
 
 /** Pixel width tiles are rasterised at: the largest on-screen tile (76 CSS px) at a 3× screen. */
 export const RASTER_W = 240;
 
-function svgUrls(theme: Theme): string[] {
-  let urls = svgCache.get(theme.id);
+function svgUrls(theme: Theme, opts: TileOptions): string[] {
+  const k = cacheKey(theme, opts);
+  let urls = svgCache.get(k);
   if (!urls) {
-    urls = theme.tiles.map((_, k) => URL.createObjectURL(new Blob([tileSvg(theme, k)], { type: 'image/svg+xml' })));
-    svgCache.set(theme.id, urls);
+    urls = Array.from({ length: imageCount(theme) }, (_, i) =>
+      URL.createObjectURL(new Blob([tileSvg(theme, i, opts)], { type: 'image/svg+xml' })),
+    );
+    svgCache.set(k, urls);
   }
   return urls;
 }
 
 /**
- * Image URLs for every tile kind of a theme. Once `prepareTiles` has finished these
- * are pre-rasterised PNGs (cheap to draw and scale); before that, the SVG originals.
+ * Image URLs for every tile image of a theme: the designs, then the wild tile, then
+ * the face-down tile. Once `prepareTiles` has finished these are pre-rasterised PNGs
+ * (cheap to draw and scale); before that, the SVG originals.
  */
-export function tileUrls(theme: Theme): string[] {
-  return rasterCache.get(theme.id) ?? svgUrls(theme);
+export function tileUrls(theme: Theme, opts: TileOptions = {}): string[] {
+  return rasterCache.get(cacheKey(theme, opts)) ?? svgUrls(theme, opts);
 }
 
 /**
  * Rasterise each tile's SVG once into a PNG. Drawing a bitmap is far cheaper than
  * re-rendering vector art (with its blur shadow) whenever a tile changes size.
  */
-export function prepareTiles(theme: Theme): Promise<string[]> {
-  const done = rasterCache.get(theme.id);
+export function prepareTiles(theme: Theme, opts: TileOptions = {}): Promise<string[]> {
+  const k = cacheKey(theme, opts);
+  const done = rasterCache.get(k);
   if (done) return Promise.resolve(done);
-  let p = pending.get(theme.id);
+  let p = pending.get(k);
   if (!p) {
-    p = Promise.all(svgUrls(theme).map((src) => rasterise(src))).then(
+    p = Promise.all(svgUrls(theme, opts).map((src) => rasterise(src))).then(
       (urls) => {
-        rasterCache.set(theme.id, urls);
+        rasterCache.set(k, urls);
         return urls;
       },
-      () => svgUrls(theme),
+      () => svgUrls(theme, opts),
     );
-    pending.set(theme.id, p);
+    pending.set(k, p);
   }
   return p;
 }
@@ -95,8 +128,8 @@ async function rasterise(src: string): Promise<string> {
 }
 
 /** Prepare (rasterise and decode) every tile image up front so the first tap never stalls. */
-export async function warmTiles(theme: Theme): Promise<void> {
-  await prepareTiles(theme);
+export async function warmTiles(theme: Theme, opts: TileOptions = {}): Promise<void> {
+  await prepareTiles(theme, opts);
 }
 
 export function backdropUrl(theme: Theme): string {

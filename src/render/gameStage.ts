@@ -2,10 +2,10 @@
 // events. All tiles live in one stage layer so a tile can fly from the board into
 // the tray without being re-parented.
 
-import type { Game, GameEvent } from '../core/game.ts';
+import { WILD, type Game, type GameEvent } from '../core/game.ts';
 import type { Slot } from '../core/board.ts';
 import type { Theme } from '../themes/types.ts';
-import { tileUrls, TILE_W, TILE_H } from '../themes/prerender.ts';
+import { tileUrls, imageIndex, MYSTERY_IMAGE, TILE_W, TILE_H } from '../themes/prerender.ts';
 import { Particles } from './particles.ts';
 import { moveTo, flyTo, popOut, shake, hop, flash, wait, reducedMotion, poseTransform, EASE_BACK, type Pose } from './tweens.ts';
 import { silentFeedback, type Feedback } from './feedback.ts';
@@ -14,17 +14,28 @@ const FACE_RATIO = 101.5 / TILE_W; // visible face height ÷ width
 const BODY_RATIO = TILE_H / TILE_W; // full image height ÷ width
 const LAYER_DX = -0.05; // per-layer shift, in tile widths
 const LAYER_DY = -0.1;
+/** Wells drawn when the tray has no limit (Zen mode); more tiles squeeze together. */
+const OPEN_TRAY_WELLS = 7;
 
 export const FLY_MS = 260;
 export const POP_MS = 300;
 
+const LOCK_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7.5a5 5 0 0 1 10 0V10" fill="none" stroke="#26324A" stroke-width="2.6"/><rect x="4" y="10" width="16" height="12" rx="3" fill="#F2B33D" stroke="#26324A" stroke-width="1.8"/><circle cx="12" cy="15" r="1.8" fill="#26324A"/><path d="M12 16v3" stroke="#26324A" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+const KEY_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4.5" fill="#F2B33D" stroke="#26324A" stroke-width="1.8"/><circle cx="8" cy="12" r="1.6" fill="#26324A"/><path d="M12.5 12H21M17 12v3M20 12v2.5" fill="none" stroke="#26324A" stroke-width="2" stroke-linecap="round"/></svg>`;
+
 export interface StageCallbacks {
   /** Called after win/lose animations finish. */
   onEnd(result: 'won' | 'lost'): void;
-  /** Called for every tap on a free board tile (before the game is updated). */
+  /** Called for every tap on a tappable board tile (before the game is updated). */
   onTap(slot: number): void;
   /** Sound and vibration hooks. */
   feedback?: Feedback;
+  /** Space kept free below the tray (for the power-up bar), in px. */
+  bottomReserve?: number;
+  /** Colour-blind help: numbered tile designs. */
+  numbers?: boolean;
+  /** Tiles that start face-down. */
+  mystery?: readonly number[];
 }
 
 interface Layout {
@@ -37,13 +48,13 @@ interface Layout {
   trayX: number;
   trayY: number;
   trayGap: number;
+  trayInnerW: number;
 }
 
 export class GameStage {
   readonly el: HTMLElement;
   private readonly tilesLayer: HTMLElement;
   private readonly trayEl: HTMLElement;
-  private readonly wells: HTMLElement[] = [];
   readonly particles: Particles;
   private readonly tileEls: HTMLElement[] = [];
   private layoutState!: Layout;
@@ -51,6 +62,11 @@ export class GameStage {
   private ended = false;
   /** Tray slots shown, in game.tray order (excludes tiles popping out). */
   private trayOrder: number[] = [];
+  private readonly urls: string[];
+  private readonly faceDown = new Set<number>();
+  private hintTimer = 0;
+  private xrayTimer = 0;
+  private comboEl: HTMLElement | null = null;
 
   private readonly game: Game;
   private readonly theme: Theme;
@@ -63,24 +79,25 @@ export class GameStage {
     this.theme = theme;
     this.cb = cb;
     this.fb = cb.feedback ?? silentFeedback;
+    this.urls = tileUrls(theme, { numbers: cb.numbers });
     this.el = document.createElement('div');
     this.el.className = 'stage';
-    this.el.innerHTML = `<div class="board-area"></div><div class="tray"><div class="tray-glow"></div><div class="tray-wells"></div></div><div class="tiles"></div>`;
+    this.el.innerHTML = `<div class="tray"><div class="tray-glow"></div><div class="tray-wells"></div></div><div class="tiles"></div>`;
     parent.appendChild(this.el);
     this.tilesLayer = this.el.querySelector('.tiles')!;
     this.trayEl = this.el.querySelector('.tray')!;
     this.particles = new Particles(this.el, theme.particles);
 
-    const urls = tileUrls(theme);
+    for (const s of cb.mystery ?? []) if (!game.board.isFree(s)) this.faceDown.add(s);
     const order = [...game.board.geo.slots].sort((a, b) => a.layer - b.layer || a.y - b.y || a.x - b.x);
     for (const slot of game.board.geo.slots) {
       const t = document.createElement('div');
       t.className = 'tile';
       t.dataset.slot = String(slot.id);
-      t.style.backgroundImage = `url("${urls[game.kinds[slot.id] % urls.length]}")`;
       t.setAttribute('role', 'button');
-      t.setAttribute('aria-label', theme.tiles[game.kinds[slot.id] % theme.tiles.length].name);
       this.tileEls[slot.id] = t;
+      this.paintFace(slot.id);
+      this.decorate(slot.id);
     }
     for (const slot of order) this.tilesLayer.appendChild(this.tileEls[slot.id]);
     this.buildWells();
@@ -92,6 +109,54 @@ export class GameStage {
     this.layout(false);
     this.dealIn();
   }
+
+  // ── Tile faces and special-tile decorations ────────────────────────────────
+
+  private label(slot: number): string {
+    if (this.faceDown.has(slot)) return 'Face-down tile';
+    const kind = this.game.kinds[slot];
+    const name = kind === WILD ? 'Wild tile' : this.theme.tiles[kind % this.theme.tiles.length].name;
+    const frost = this.game.frostOf(slot);
+    if (frost > 0) return `${name}, frozen (${frost})`;
+    if (this.game.isLocked(slot)) return `${name}, locked`;
+    return name;
+  }
+
+  private paintFace(slot: number): void {
+    const el = this.tileEls[slot];
+    const img = this.faceDown.has(slot) ? MYSTERY_IMAGE : imageIndex(this.game.kinds[slot]);
+    el.style.backgroundImage = `url("${this.urls[img]}")`;
+    el.setAttribute('aria-label', this.label(slot));
+  }
+
+  private decorate(slot: number): void {
+    const el = this.tileEls[slot];
+    const r = this.game.rules;
+    const frost = r.frost[slot];
+    if (frost > 0) {
+      el.classList.add('frozen');
+      el.insertAdjacentHTML('beforeend', `<div class="ice" aria-hidden="true"><b>${frost}</b></div>`);
+    }
+    if (r.lockOf[slot] >= 0) {
+      el.classList.add('locked');
+      el.insertAdjacentHTML('beforeend', `<div class="padlock" aria-hidden="true">${LOCK_SVG}</div>`);
+    }
+    if (r.keyOf[slot] >= 0) el.insertAdjacentHTML('beforeend', `<div class="keybadge" aria-hidden="true">${KEY_SVG}</div>`);
+  }
+
+  /** Flip a tile over to a new face (mystery reveal, shuffle, wild). */
+  private flip(slot: number, delay = 0): void {
+    const el = this.tileEls[slot];
+    if (reducedMotion()) {
+      this.paintFace(slot);
+      return;
+    }
+    const a = el.animate([{ scale: '1 1' }, { scale: '0 1.06' }, { scale: '1 1' }], { duration: 320, delay, easing: 'ease-in-out' });
+    setTimeout(() => this.paintFace(slot), delay + 160);
+    void a.finished.catch(() => undefined);
+  }
+
+  // ── Opening ────────────────────────────────────────────────────────────────
 
   /** Opening flourish: tiles drop onto the board layer by layer. */
   private dealIn(): void {
@@ -113,15 +178,19 @@ export class GameStage {
     this.fb.deal(slots.length);
   }
 
+  // ── Layout ─────────────────────────────────────────────────────────────────
+
+  private get wellCount(): number {
+    return Number.isFinite(this.game.limit) ? this.game.limit : OPEN_TRAY_WELLS;
+  }
+
   private buildWells(): void {
     const wells = this.trayEl.querySelector('.tray-wells')!;
     wells.innerHTML = '';
-    this.wells.length = 0;
-    for (let i = 0; i < this.game.limit; i++) {
+    for (let i = 0; i < this.wellCount; i++) {
       const w = document.createElement('div');
       w.className = 'well';
       wells.appendChild(w);
-      this.wells.push(w);
     }
   }
 
@@ -138,7 +207,11 @@ export class GameStage {
 
   private trayPose(index: number): Pose {
     const L = this.layoutState;
-    return { x: L.trayX + index * (L.trayTileW + L.trayGap), y: L.trayY, s: L.trayTileW / L.tileW };
+    const n = this.trayOrder.length;
+    let step = L.trayTileW + L.trayGap;
+    // An open tray (Zen) squeezes tiles together once it holds more than the wells.
+    if (n > this.wellCount) step = (L.trayInnerW - L.trayTileW) / (n - 1);
+    return { x: L.trayX + index * step, y: L.trayY, s: L.trayTileW / L.tileW };
   }
 
   /** Screen-space centre of a slot's tile (for tutorial pointers). */
@@ -163,14 +236,14 @@ export class GameStage {
     const maxY = Math.max(...slots.map((s) => s.y));
     const maxLayer = Math.max(...slots.map((s) => s.layer));
 
-    // Tray: sized for the tray limit, anchored above the bottom edge.
-    const limit = this.game.limit;
+    // Tray: sized for its wells, anchored above the power-up bar.
+    const wells = this.wellCount;
     const trayPad = 10;
     const trayGap = 8;
-    const trayTileW = Math.min(66, (Math.min(W, 520) - 32 - trayPad * 2 - trayGap * (limit - 1)) / limit);
-    const trayInnerW = limit * trayTileW + (limit - 1) * trayGap;
+    const trayTileW = Math.min(66, (Math.min(W, 520) - 32 - trayPad * 2 - trayGap * (wells - 1)) / wells);
+    const trayInnerW = wells * trayTileW + (wells - 1) * trayGap;
     const trayH = trayTileW * BODY_RATIO + trayPad * 2;
-    const trayBottom = 20;
+    const trayBottom = 20 + (this.cb.bottomReserve ?? 0);
     const trayTop = H - trayBottom - trayH;
     const trayX = (W - trayInnerW) / 2;
     this.trayEl.style.cssText = `left:${trayX - trayPad}px;top:${trayTop}px;width:${trayInnerW + trayPad * 2}px;height:${trayH}px;--well-w:${trayTileW}px;--well-gap:${trayGap}px;--well-h:${trayTileW * BODY_RATIO}px`;
@@ -188,7 +261,7 @@ export class GameStage {
     const originX = (W - boardW) / 2 + maxLayer * Math.abs(LAYER_DX) * tileW;
     const originY = areaTop + (areaH - boardH) / 2 + maxLayer * Math.abs(LAYER_DY) * tileW;
 
-    this.layoutState = { tileW, originX, originY, minX, minY, trayTileW, trayX, trayY: trayTop + trayPad, trayGap };
+    this.layoutState = { tileW, originX, originY, minX, minY, trayTileW, trayX, trayY: trayTop + trayPad, trayGap, trayInnerW };
     this.el.style.setProperty('--tile-w', `${tileW}px`);
     this.el.style.setProperty('--tile-h', `${tileW * BODY_RATIO}px`);
     this.particles.resize();
@@ -207,20 +280,32 @@ export class GameStage {
     }
   }
 
+  // ── Input ──────────────────────────────────────────────────────────────────
+
   private onPointer = (e: PointerEvent): void => {
     if (this.ended) return;
     const t = (e.target as HTMLElement).closest<HTMLElement>('.tile');
     if (!t || t.dataset.state) return;
     const slot = Number(t.dataset.slot);
     if (!this.game.canTap(slot)) {
-      if (this.game.board.isPresent(slot)) shake(t, 3, 220);
+      if (this.game.board.isPresent(slot)) {
+        shake(t, 3, 220);
+        if (this.game.board.isFree(slot)) {
+          // uncovered but frozen or locked: draw attention to what holds it
+          const badge = t.querySelector<HTMLElement>('.ice, .padlock');
+          badge?.animate([{ scale: '1' }, { scale: '1.15' }, { scale: '1' }], { duration: 260 });
+        }
+      }
       return;
     }
     e.preventDefault();
+    this.clearHint();
     this.cb.onTap(slot);
   };
 
-  /** Apply the events returned by game.tap / game.undo. */
+  // ── Events ─────────────────────────────────────────────────────────────────
+
+  /** Apply the events returned by the game. */
   apply(events: GameEvent[]): void {
     for (const ev of events) {
       switch (ev.type) {
@@ -229,6 +314,7 @@ export class GameStage {
           el.dataset.state = 'tray';
           el.classList.remove('blocked');
           el.style.zIndex = '5000';
+          if (this.faceDown.delete(ev.slot)) this.paintFace(ev.slot);
           const match = events.find((x) => x.type === 'pairCleared' && x.slots[1] === ev.slot);
           let index: number;
           if (match && match.type === 'pairCleared') {
@@ -237,6 +323,7 @@ export class GameStage {
           } else {
             this.trayOrder.push(ev.slot);
             index = this.trayOrder.length - 1;
+            if (this.trayOrder.length > this.wellCount) this.relayoutTray(0);
           }
           this.spinSign = -this.spinSign;
           flyTo(el, this.trayPose(Math.max(0, index)), FLY_MS, 7 * this.spinSign);
@@ -249,12 +336,40 @@ export class GameStage {
           break;
         case 'freed':
           for (const s of ev.slots) {
-            this.tileEls[s].classList.remove('blocked');
-            hop(this.tileEls[s], 5, 90);
+            const el = this.tileEls[s];
+            el.classList.remove('blocked');
+            if (this.faceDown.delete(s)) this.flip(s, 120);
+            else hop(el, 5, 90);
           }
           break;
         case 'blocked':
           for (const s of ev.slots) this.tileEls[s].classList.add('blocked');
+          break;
+        case 'chilled':
+          for (const s of ev.slots) {
+            const b = this.tileEls[s].querySelector('.ice b');
+            if (b) b.textContent = String(this.game.frostOf(s));
+            this.tileEls[s].querySelector('.ice')?.animate([{ scale: '1' }, { scale: '1.08' }, { scale: '1' }], { duration: 300 });
+            this.paintFace(s);
+          }
+          break;
+        case 'thawed':
+          for (const s of ev.slots) void this.thaw(s);
+          break;
+        case 'unlocked':
+          for (const s of ev.slots) void this.unlock(s);
+          break;
+        case 'wildified':
+          setTimeout(() => {
+            flash(this.tileEls[ev.slot], 400);
+            this.flip(ev.slot);
+          }, FLY_MS + POP_MS);
+          break;
+        case 'shuffled':
+          ev.slots.forEach((s, i) => {
+            this.faceDown.delete(s);
+            this.flip(s, (i % 12) * 25);
+          });
           break;
         case 'undone': {
           const el = this.tileEls[ev.slot];
@@ -283,6 +398,50 @@ export class GameStage {
           break;
       }
     }
+  }
+
+  private async thaw(slot: number): Promise<void> {
+    const el = this.tileEls[slot];
+    el.classList.remove('frozen');
+    this.paintFace(slot);
+    const ice = el.querySelector<HTMLElement>('.ice');
+    if (!ice) return;
+    const r = el.getBoundingClientRect();
+    const host = this.el.getBoundingClientRect();
+    this.particles.burst(r.left - host.left + r.width / 2, r.top - host.top + r.height / 2, 0.8, {
+      colors: ['#FFFFFF', '#CFE8FF', '#9CCBF2'],
+      shape: 'spark',
+      count: 16,
+      gravity: 300,
+    });
+    if (!reducedMotion()) {
+      await ice.animate([{ opacity: 1, scale: '1' }, { opacity: 0, scale: '1.25' }], { duration: 320, easing: 'ease-out' }).finished.catch(() => undefined);
+    }
+    ice.remove();
+    hop(el, 6);
+  }
+
+  private async unlock(slot: number): Promise<void> {
+    const el = this.tileEls[slot];
+    el.classList.remove('locked');
+    this.paintFace(slot);
+    const lock = el.querySelector<HTMLElement>('.padlock');
+    if (!lock) return;
+    if (!reducedMotion()) {
+      await lock
+        .animate(
+          [
+            { transform: 'translate(0,0) rotate(0)', opacity: 1 },
+            { transform: 'translate(0,-10px) rotate(-12deg)', opacity: 1, offset: 0.4 },
+            { transform: 'translate(10px,24px) rotate(30deg)', opacity: 0 },
+          ],
+          { duration: 520, easing: 'ease-in' },
+        )
+        .finished.catch(() => undefined);
+    }
+    lock.remove();
+    flash(el, 300);
+    hop(el, 6);
   }
 
   private relayoutTray(delay: number): void {
@@ -315,8 +474,6 @@ export class GameStage {
     this.relayoutTray(0);
   }
 
-  private comboEl: HTMLElement | null = null;
-
   private comboLabel(combo: number, x: number, y: number): void {
     this.comboEl?.remove();
     const el = document.createElement('div');
@@ -339,6 +496,50 @@ export class GameStage {
       { duration: 1000, easing: 'ease-out' },
     ).finished.then(() => el.remove(), () => el.remove());
   }
+
+  // ── Power-up visuals ───────────────────────────────────────────────────────
+
+  /** Glow the suggested tiles until the next tap (or 4 s). */
+  showHint(slots: number[]): void {
+    this.clearHint();
+    for (const s of slots) this.tileEls[s].classList.add('hint');
+    this.hintTimer = window.setTimeout(() => this.clearHint(), 4000);
+  }
+
+  private clearHint(): void {
+    clearTimeout(this.hintTimer);
+    for (const el of this.tilesLayer.querySelectorAll('.tile.hint')) el.classList.remove('hint');
+  }
+
+  /** See through the top tiles for a few seconds; face-down tiles show their faces. */
+  xray(ms = 3000): void {
+    clearTimeout(this.xrayTimer);
+    this.el.classList.add('xray');
+    for (const s of this.faceDown) this.tileEls[s].style.backgroundImage = `url("${this.urls[imageIndex(this.game.kinds[s])]}")`;
+    this.xrayTimer = window.setTimeout(() => {
+      this.el.classList.remove('xray');
+      for (const s of this.faceDown) this.paintFace(s);
+    }, ms);
+  }
+
+  /** Rebuild wells after the tray limit changes. */
+  limitChanged(): void {
+    this.buildWells();
+    this.layout(true);
+    this.trayEl.querySelectorAll<HTMLElement>('.well').forEach((w, i) => {
+      if (i === this.wellCount - 1) w.animate([{ scale: '0.4', opacity: 0 }, { scale: '1', opacity: 1 }], { duration: 360, easing: 'cubic-bezier(.34,1.56,.64,1)' });
+    });
+  }
+
+  /** Undo the end-of-game state after Continue. */
+  revive(): void {
+    this.ended = false;
+    this.trayEl.classList.remove('full');
+    for (const s of this.trayOrder) this.tileEls[s].classList.remove('bad');
+    this.refreshBlocked();
+  }
+
+  // ── Endings ────────────────────────────────────────────────────────────────
 
   private async lose(): Promise<void> {
     this.ended = true;
@@ -381,17 +582,12 @@ export class GameStage {
     return this.tileEls[slot];
   }
 
-  /** Rebuild wells after the tray limit changes. */
-  limitChanged(): void {
-    this.buildWells();
-    this.layout(true);
-  }
-
   destroy(): void {
+    clearTimeout(this.hintTimer);
+    clearTimeout(this.xrayTimer);
     this.resizeObs.disconnect();
     this.el.removeEventListener('pointerdown', this.onPointer);
     this.particles.destroy();
     this.el.remove();
   }
 }
-
