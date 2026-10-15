@@ -50,9 +50,14 @@ alive() { [ -n "$(adb shell pidof $PKG | tr -d '\r')" ]; }
 note "device: $(adb shell getprop ro.product.model | tr -d '\r'), Android $(adb shell getprop ro.build.version.release | tr -d '\r'), $(adb shell wm size | tr -d '\r')"
 adb install -r "$APK" | tee -a "$OUT/steps.txt" || { fail "install failed"; exit 1; }
 adb logcat -c
+# Android shows a one-time "Viewing full screen" notice the first time an app hides
+# the system bars; mark it as already seen so it doesn't cover the game.
+adb shell settings put secure immersive_mode_confirmations confirmed
 
 # 1. Launch: the home screen appears, full screen.
 adb shell am start -W -n $PKG/.MainActivity | tee -a "$OUT/steps.txt"
+sleep 5
+if [ -n "$(find_node "Viewing full screen")" ]; then note "dismissing the full-screen notice"; tap_text "Got it"; fi
 if wait_for "Start playing" 90; then note "home screen is up"; else fail "home screen did not appear"; fi
 sleep 3; shot home
 adb shell dumpsys window windows 2>/dev/null | grep -iE "mCurrentFocus|isStatusBarVisible|statusBars" | head -5 >> "$OUT/steps.txt"
@@ -109,7 +114,8 @@ shot relaunch
 adb logcat -d > "$OUT/logcat-full.txt"
 grep -E "AndroidRuntime|Capacitor|chromium|Pairfall|$PKG|System.err" "$OUT/logcat-full.txt" | tail -n 400 > "$OUT/logcat.txt"
 if grep -q "FATAL EXCEPTION" "$OUT/logcat-full.txt"; then fail "app crashed (FATAL EXCEPTION in logcat)"; fi
-if grep -E "Capacitor/Console.*(Uncaught|TypeError|ReferenceError)" "$OUT/logcat-full.txt" > "$OUT/js-errors.txt"; then fail "JavaScript errors in the console"; fi
+# (Capacitor's own early safe-area injection can log a harmless error before the page exists.)
+if grep -E "Capacitor/Console.*(Uncaught|TypeError|ReferenceError)" "$OUT/logcat-full.txt" | grep -v "Error injecting safe area CSS" > "$OUT/js-errors.txt"; then fail "JavaScript errors in the console"; fi
 rm -f "$OUT/logcat-full.txt"
 
 if [ ${#FAILS[@]} -gt 0 ]; then
