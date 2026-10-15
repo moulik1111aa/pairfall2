@@ -90,6 +90,12 @@ export function build() {
     .replace('/*__JS__*/', () => scriptSafe(js));
   mkdirSync(dist, { recursive: true });
   writeFileSync(join(dist, 'index.html'), html);
+  // Artifact variant: the host wraps the page in its own document skeleton, so it
+  // carries only the title, styles, app root and script.
+  const artifact =
+    `<title>Pairfall</title>\n<meta name="theme-color" content="#D9E4DC">\n<style>${css}</style>\n` +
+    `<div id="app" aria-live="polite"></div>\n<script>${scriptSafe(js)}</script>\n`;
+  writeFileSync(join(dist, 'artifact.html'), artifact);
   return { bytes: Buffer.byteLength(html) };
 }
 
