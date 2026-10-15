@@ -168,16 +168,25 @@ Locked themes show a preview in the themes gallery. All art and audio is origina
   - Settings: sound, music, vibration, colour-blind mode, left-handed layout.
   - Stats: levels cleared, win rate, best combo, daily streak, total pairs.
 
+- **How to play** (the ? button on Home): one idea per card in large type, with big Back / Next buttons, swipe, and tabs for Basics, Power-ups, Tiles and Modes. Long cards step their type down slightly so nothing needs scrolling.
+
 **Accessibility:**
 - Colour-blind mode adds a small symbol to each tile kind.
 - Left-handed mode mirrors the power-up bar.
+
+**Hindi alongside English (added 2026-10-16, user request):**
+- Every instruction shows English with Hindi directly underneath: the tutorial coach, special-tile introduction cards, How to play, power-up tips, why a level was lost, the "press back again" hint and the theme-unlock note.
+- Text is sized for older players: instruction cards use 19–22 px body text, and How to play keeps to one idea per screen rather than long pages.
+- Power-up names stay in English inside the Hindi text, because the buttons say them in English; How to play adds a Hindi gloss (Undo · वापस लें).
+- Settings has a "Hindi instructions · हिंदी निर्देश" switch, on by default, labelled in both languages so it can be found either way.
+- All strings live in `src/ui/i18n.ts`, so the two languages always travel together.
 
 ## 9. Architecture
 
 Stack (revised 2026-10-15: the build workspace can't download packages, so the game has no runtime dependencies):
 - TypeScript, compiled by a small project build script using Node 22's built-in type stripping. The script bundles everything into one self-contained `index.html`.
 - **Rendering:** tiles and the tray are DOM elements moved only with GPU-composited CSS `transform` and `opacity`, so the browser animates them at the display's refresh rate. Particles, glows and bursts are drawn on a full-screen Canvas 2D layer above the board. Tile art is pre-rendered once per theme into image bitmaps, so frames never redraw SVG.
-- **Android wrapper:** Capacitor, with the Haptics, Preferences, App and Status Bar plugins. These are installed only inside the GitHub Actions build, where package downloads work. In the browser preview the `platform/` layer falls back to the web Vibration API and `localStorage`.
+- **Android wrapper (as built, Capacitor 8):** no npm plugins. The app has its own small native plugin, `native/android/.../PairfallPlugin.java`, for haptics (Android's predefined tick/click effects and haptic compositions), the back button, immersive full screen, the highest refresh rate, keep-screen-on during play, and a SharedPreferences mirror of the save. Capacitor's built-in SystemBars plugin supplies the camera-cutout insets as CSS variables. No Capacitor JavaScript is bundled: `src/platform/native.ts` talks to the plugin objects Capacitor injects, and in the browser preview everything falls back to the web Vibration API and `localStorage`.
 - **Tests:** Node's built-in test runner (`node --test`) for unit tests, and the locally installed Playwright 1.56 with Chromium for browser tests.
 
 ```
@@ -219,9 +228,11 @@ android/         Capacitor Android project (generated in CI)
 - When the app moves to the background, the game pauses and saves immediately.
 
 **Android behaviour:**
-- Portrait locked, full-screen (immersive) mode.
-- The back button pauses during a game, and asks to confirm exit on the home screen.
-- Animation runs at the display's full refresh rate.
+- Portrait locked, full-screen (immersive) mode; a swipe from the edge shows the system bars briefly.
+- Back button: closes the open card (running its marked action, e.g. Resume), pauses during a game, goes back from sub-screens, and on Home a second press within 2 s leaves the app.
+- The window asks for the display's fastest mode at its resolution (120 Hz on the 13R).
+- The screen stays on during play only.
+- The save is mirrored natively; if the WebView's storage is ever wiped, it is restored before the game reads it.
 
 ## 10. Delivery
 
@@ -235,6 +246,8 @@ android/         Capacitor Android project (generated in CI)
    - The user needs a GitHub account, an empty repository, and GitHub connected to Claude.
    - The signing key is stored as a GitHub secret, and the user keeps a backup copy.
    - Every APK uses the same key, so updates install over the existing app and keep progress.
+   - As built: the keystore is committed only in encrypted form (`native/android/pairfall-release.jks.gpg`, GitHub's documented pattern for large secrets); the single repository secret `PAIRFALL_SIGNING_PASSWORD` decrypts it and is also the keystore password. The workflow refuses to publish an APK whose certificate SHA-256 differs from the release key's.
+   - Each push to `main` builds and publishes a GitHub Release; the newest APK is always at `releases/latest/download/Pairfall.apk`. `versionCode` is the workflow run number.
 
 ## 11. Testing
 
