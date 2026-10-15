@@ -106,12 +106,10 @@ export function prepareTiles(theme: Theme, opts: TileOptions = {}): Promise<stri
   return p;
 }
 
-async function rasterise(src: string): Promise<string> {
+async function rasterise(src: string, w = RASTER_W, h = Math.round((RASTER_W * TILE_H) / TILE_W)): Promise<string> {
   const img = new Image();
   img.src = src;
   await img.decode();
-  const w = RASTER_W;
-  const h = Math.round((RASTER_W * TILE_H) / TILE_W);
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -134,4 +132,34 @@ export async function warmTiles(theme: Theme, opts: TileOptions = {}): Promise<v
 
 export function backdropUrl(theme: Theme): string {
   return `url("data:image/svg+xml,${encodeURIComponent(theme.backdrop)}")`;
+}
+
+/** The ice overlay drawn over frozen tiles: rasterised once, drawn as a bitmap. */
+const ICE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 104" width="200" height="208">
+  <defs>
+    <linearGradient id="i" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ECF7FF" stop-opacity=".88"/><stop offset=".55" stop-color="#AAD4F5" stop-opacity=".66"/><stop offset="1" stop-color="#D6ECFF" stop-opacity=".84"/></linearGradient>
+    <radialGradient id="r" cx=".5" cy=".5" r=".6"><stop offset=".6" stop-color="#6EAAE1" stop-opacity="0"/><stop offset="1" stop-color="#6EAAE1" stop-opacity=".45"/></radialGradient>
+  </defs>
+  <rect x="2" y="2" width="96" height="100" rx="15" fill="url(#i)"/>
+  <rect x="2" y="2" width="96" height="100" rx="15" fill="url(#r)"/>
+  <rect x="3.5" y="3.5" width="93" height="97" rx="14" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+  <path d="M18 20 30 34 26 50M70 14 62 30 74 42M80 72 66 66 58 82M14 70 24 78" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".85"/>
+  <path d="M14 14 Q30 8 44 12" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+</svg>`;
+
+let iceUrl: string | null = null;
+let icePending: Promise<string> | null = null;
+
+/** Ice overlay image URL (SVG until rasterised, then PNG). */
+export function iceImage(): string {
+  return iceUrl ?? `data:image/svg+xml,${encodeURIComponent(ICE_SVG)}`;
+}
+
+export function prepareIce(): Promise<string> {
+  if (iceUrl) return Promise.resolve(iceUrl);
+  icePending ??= rasterise(URL.createObjectURL(new Blob([ICE_SVG], { type: 'image/svg+xml' })), 240, 250).then(
+    (u) => (iceUrl = u),
+    () => iceImage(),
+  );
+  return icePending;
 }

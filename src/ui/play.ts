@@ -18,7 +18,7 @@ import { homeScreen } from './home.ts';
 import { mapScreen } from './map.ts';
 import { reducedMotion } from '../render/tweens.ts';
 import { settingsToggles } from './settings.ts';
-import { prepareTiles, tileUrls, MYSTERY_IMAGE, WILD_IMAGE } from '../themes/prerender.ts';
+import { prepareTiles, prepareIce, tileUrls, MYSTERY_IMAGE, WILD_IMAGE } from '../themes/prerender.ts';
 
 declare global {
   interface Window {
@@ -96,9 +96,14 @@ export function playScreen(m: number | PlayMode) {
     };
 
     // ── Power-ups ────────────────────────────────────────────────────────────
+    let barState = '';
     const renderBar = () => {
       if (!bar || !game) return;
       const g = game;
+      // Skip DOM work when nothing the bar shows has changed (this runs on every tap).
+      const state = [g.status, g.canUndo(), usedSlot, g.limit, app.save.data.coins, ...Object.values(app.save.data.powerups)].join();
+      if (state === barState) return;
+      barState = state;
       for (const b of bar.querySelectorAll<HTMLButtonElement>('.pu')) {
         const id = b.dataset.id as PowerupId;
         const free = app.save.data.powerups[id];
@@ -375,7 +380,7 @@ export function playScreen(m: number | PlayMode) {
     el.querySelector('.new-board')?.addEventListener('click', newZen);
 
     const numbers = app.save.data.settings.colorBlind;
-    Promise.all([getLevel(mode), prepareTiles(app.theme, { numbers })]).then(
+    Promise.all([getLevel(mode), prepareTiles(app.theme, { numbers }), prepareIce()]).then(
       ([level]) => {
         if (destroyed) return;
         area.querySelector('.loading')?.remove();
