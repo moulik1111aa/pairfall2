@@ -12,6 +12,8 @@ import { Tutorial } from './tutorial.ts';
 import { homeScreen } from './home.ts';
 import { mapScreen } from './map.ts';
 import { reducedMotion } from '../render/tweens.ts';
+import { settingsToggles } from './settings.ts';
+import { prepareTiles } from '../themes/prerender.ts';
 
 declare global {
   interface Window {
@@ -55,6 +57,8 @@ export function playScreen(n: number) {
         ],
         'Paused',
       );
+      const sheetEl = sheet.querySelector('.sheet')!;
+      sheetEl.insertBefore(settingsToggles(app), sheetEl.querySelector('.actions'));
     };
 
     const showWin = (g: Game) => {
@@ -110,8 +114,8 @@ export function playScreen(n: number) {
 
     el.querySelector('.pause-btn')!.addEventListener('click', showPause);
 
-    getLevel(n).then(
-      (level) => {
+    Promise.all([getLevel(n), prepareTiles(app.theme)]).then(
+      ([level]) => {
         if (destroyed) return;
         area.querySelector('.loading')?.remove();
         const g = new Game(level);
@@ -124,6 +128,7 @@ export function playScreen(n: number) {
         };
         stage = new GameStage(area, g, app.theme, {
           onTap,
+          feedback: app.feedback,
           onEnd(result) {
             tutorial?.destroy();
             if (result === 'won') showWin(g);
@@ -148,6 +153,7 @@ export function playScreen(n: number) {
       pause: showPause,
       destroy() {
         destroyed = true;
+        app.sound.danger(false);
         tutorial?.destroy();
         stage?.destroy();
       },

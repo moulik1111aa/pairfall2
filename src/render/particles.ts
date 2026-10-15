@@ -20,10 +20,20 @@ interface P {
 
 const MAX = 600;
 
+interface Ring {
+  x: number;
+  y: number;
+  life: number;
+  ttl: number;
+  r: number;
+  color: string;
+}
+
 export class Particles {
   readonly canvas: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
   private readonly pool: P[] = [];
+  private rings: Ring[] = [];
   private alive = 0;
   private raf = 0;
   private last = 0;
@@ -56,7 +66,44 @@ export class Particles {
   }
 
   get activeCount(): number {
-    return this.alive;
+    return this.alive + this.rings.length;
+  }
+
+  private kick(): void {
+    if (!this.raf) {
+      this.last = performance.now();
+      this.raf = requestAnimationFrame(this.tick);
+    }
+  }
+
+  /** An expanding ring — the shockwave when a pair clears. */
+  ring(x: number, y: number, radius: number, color = '#FFFFFF', ttl = 0.45): void {
+    this.rings.push({ x, y, life: 0, ttl, r: radius, color });
+    this.kick();
+  }
+
+  /** Petals drifting down from the top edge (win celebration). */
+  rain(count: number, preset: ParticlePreset = this.preset): void {
+    let cursor = 0;
+    for (let i = 0; i < count; i++) {
+      while (cursor < MAX && this.pool[cursor].alive) cursor++;
+      if (cursor >= MAX) break;
+      const p = this.pool[cursor];
+      p.alive = true;
+      p.x = Math.random() * this.w;
+      p.y = -20 - Math.random() * this.h * 0.6;
+      p.vx = (Math.random() - 0.5) * 40;
+      p.vy = 60 + Math.random() * 80;
+      p.rot = Math.random() * Math.PI * 2;
+      p.vr = (Math.random() - 0.5) * 4;
+      p.size = 5 + Math.random() * 5;
+      p.life = 0;
+      p.ttl = 2.6 + Math.random() * 1.4;
+      p.color = preset.colors[(Math.random() * preset.colors.length) | 0];
+      p.wobble = Math.random() * 6;
+      this.alive++;
+    }
+    this.kick();
   }
 
   /** Burst at a point. `power` scales count and speed (combo, win). */
@@ -83,10 +130,7 @@ export class Particles {
       p.wobble = Math.random() * 6;
       this.alive++;
     }
-    if (!this.raf) {
-      this.last = performance.now();
-      this.raf = requestAnimationFrame(this.tick);
-    }
+    this.kick();
   }
 
   private tick = (now: number): void => {
@@ -131,8 +175,21 @@ export class Particles {
       ctx.fill();
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (this.rings.length) {
+      this.rings = this.rings.filter((r) => (r.life += dt) < r.ttl);
+      for (const r of this.rings) {
+        const k = r.life / r.ttl;
+        const ease = 1 - (1 - k) * (1 - k);
+        ctx.globalAlpha = (1 - k) * 0.9;
+        ctx.strokeStyle = r.color;
+        ctx.lineWidth = 6 * (1 - k) + 1;
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.r * (0.35 + ease), 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
     ctx.globalAlpha = 1;
-    if (this.alive > 0) this.raf = requestAnimationFrame(this.tick);
+    if (this.alive > 0 || this.rings.length) this.raf = requestAnimationFrame(this.tick);
     else {
       this.raf = 0;
       ctx.clearRect(0, 0, this.w, this.h);

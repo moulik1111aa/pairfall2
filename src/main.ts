@@ -5,6 +5,7 @@ import { mapScreen } from './ui/map.ts';
 import { sheetScreen } from './ui/sheet.ts';
 
 const app = new App(document.getElementById('app')!);
+if (app.debug) (window as unknown as { __app: App }).__app = app;
 const params = new URLSearchParams(location.search);
 const level = Number(params.get('level'));
 if (params.has('map')) app.show(mapScreen);
