@@ -18,7 +18,7 @@ Status: Approved in conversation, awaiting spec review
 - **Tray:** tapping a free tile moves it into the tray.
   - If the tray already holds a tile of the same kind, both clear with a burst.
   - The tray therefore never holds two tiles of the same kind.
-  - Every tile kind appears on the board an even number of times (2 or 4).
+  - Every tile kind appears on the board an even number of times, at most 8 (four pairs).
 - **Lose:** the level ends in a loss as soon as the number of unmatched tiles in the tray reaches the **tray limit**.
   - The tray limit is **5 for levels 1–10** and **4 from level 11 onwards**.
   - The tray shows exactly that many slots.
@@ -85,8 +85,9 @@ The result always has at least one winning sequence of moves.
 
 ### 5.3 Checking difficulty
 - A test player (bot) plays each candidate level N = 300 times.
-  - It picks a move that completes a pair 80% of the time.
+  - 90% of the time it makes a sensible move: it completes a pair with the tray, or failing that starts a pair whose partner is also free on the board.
   - Otherwise it picks a random free tile.
+  - *(Calibrated 2026-10-15: at 80% the bot lost almost every large board, so band checks couldn't distinguish difficulty.)*
 - The bot's win rate decides whether the level is accepted:
 
 | Band | Target win rate | Accepted range |
@@ -99,17 +100,17 @@ The result always has at least one winning sequence of moves.
 - If all attempts fail, it uses the closest candidate. If no valid candidate exists at all, it loads a bundled, pre-checked fallback level.
 
 ### 5.4 Difficulty curve
-- **Levels 1–3:** Easy band, smallest settings, with a tutorial overlay (a pointing hand).
-- **Every 5th level:** Easy band (a breather).
-- **Every 10th level:** Hard band, with a larger and fancier shape (a "boss" level).
-- **All other levels:** Normal band.
+- **Levels 1–9 (the on-ramp, tray of 5):** Easy band. Levels 1–3 use the smallest settings and a tutorial overlay (a pointing hand).
+- **Level 10:** Normal band, as the on-ramp's boss.
+- **From level 11:** every 10th level is Hard, with a larger and fancier shape (a "boss" level); every other 5th level is an Easy breather; all other levels are Normal.
+- *(Calibrated 2026-10-15: with a tray of 5, levels 4–9 could not get hard enough to reach Normal, so they are Easy by design.)*
 - **Settings that ramp up with level number** (each capped at the value shown):
 
 | Setting | Start | Cap |
 |---|---|---|
 | Tile kinds | 6 | 18 |
 | Layers | 2 | 6 |
-| Total tiles | 24 | 120 |
+| Total tiles | 24 | 120 (Hard); 100 (Normal); 56 (Easy breathers) |
 | Target peak | 1 | limit − 1 |
 | Special tiles | none until introduced | up to 15% of tiles |
 
