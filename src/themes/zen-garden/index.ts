@@ -30,7 +30,7 @@ export const zenGarden: Theme = {
     '--well': '#DCE5DE',
   },
   tiles: ZEN_TILES,
-  tile: { face: '#FBF9F4', edge: '#9DBBA9', rim: '#6F907D' },
+  tile: { face: '#FFFDF8', faceShade: '#F0EADC', edge: '#A9C9B6', edgeShade: '#73997F', rim: '#5F8270' },
   particles: { colors: ['#F7C5D3', '#F3A6BC', '#FFFFFF', '#E57FA5'], shape: 'petal', count: 14, gravity: 260 },
   backdrop,
 };
