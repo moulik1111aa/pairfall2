@@ -95,6 +95,7 @@ export class App {
     const s = document.documentElement.style;
     for (const [k, v] of Object.entries(this.theme.vars)) s.setProperty(k, v);
     s.setProperty('--backdrop', backdropUrl(this.theme));
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', this.theme.vars['--theme-color'] ?? this.theme.vars['--bg']);
     void warmTiles(this.theme);
   }
 

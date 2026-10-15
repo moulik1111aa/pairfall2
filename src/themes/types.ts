@@ -40,6 +40,8 @@ export interface Theme {
     readonly edge: string;
     readonly edgeShade: string;
     readonly rim: string;
+    /** Inner bevel highlight colour (defaults to white). */
+    readonly highlight?: string;
   };
   readonly particles: ParticlePreset;
   /** Optional replacements for the shared wild and face-down tile art. */

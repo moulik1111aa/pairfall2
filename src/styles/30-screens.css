@@ -24,17 +24,17 @@
 .map-scroll{flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:var(--safe-bottom)}
 .map-path{position:relative;width:min(420px,100%);margin:0 auto}
 .map-line{position:absolute;inset:0;width:100%;height:100%}
-.map-line path{stroke:#A8BDB0;stroke-width:7;stroke-linecap:round;stroke-dasharray:1 16}
+.map-line path{stroke:var(--tray-edge);stroke-width:7;stroke-linecap:round;stroke-dasharray:1 16}
 .node{position:absolute;transform:translate(-50%,-50%);width:66px;height:72px;border:0;padding:0 0 6px;cursor:pointer;
-  border-radius:18px;background:var(--surface);color:var(--ink);box-shadow:0 6px 0 #9DBBA9,inset 0 0 0 2px #6F907D;
+  border-radius:18px;background:var(--surface);color:var(--ink);box-shadow:0 6px 0 var(--node-edge),inset 0 0 0 2px var(--node-rim);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-.node:active{box-shadow:0 2px 0 #9DBBA9,inset 0 0 0 2px #6F907D;margin-top:4px}
+.node:active{box-shadow:0 2px 0 var(--node-edge),inset 0 0 0 2px var(--node-rim);margin-top:4px}
 .node-num{font-family:var(--font-display);font-weight:800;font-size:24px;line-height:1}
-.node-stars{font-size:13px;letter-spacing:1px;color:#D9A63A;line-height:1}
-.node-stars i{font-style:normal;color:#C6D6CB}
-.node.current{background:var(--accent);color:#fff;box-shadow:0 6px 0 var(--accent-deep),inset 0 0 0 2px var(--accent-deep);animation:bob 1.6s ease-in-out infinite}
-.node.locked{background:#E6ECE7;color:#93A39A;box-shadow:0 4px 0 #C6D6CB,inset 0 0 0 2px #C6D6CB;cursor:default}
-.node-lock{position:absolute;right:-6px;top:-6px;width:24px;height:24px;border-radius:50%;background:#C6D6CB;color:#fff;display:grid;place-items:center}
+.node-stars{font-size:13px;letter-spacing:1px;color:var(--gold);line-height:1}
+.node-stars i{font-style:normal;color:var(--locked-ink);opacity:.6}
+.node.current{background:var(--accent);color:var(--accent-ink);box-shadow:0 6px 0 var(--accent-deep),inset 0 0 0 2px var(--accent-deep);animation:bob 1.6s ease-in-out infinite}
+.node.locked{background:var(--locked-bg);color:var(--locked-ink);box-shadow:0 4px 0 var(--well),inset 0 0 0 2px var(--well);cursor:default}
+.node-lock{position:absolute;right:-6px;top:-6px;width:24px;height:24px;border-radius:50%;background:var(--locked-ink);color:var(--locked-bg);display:grid;place-items:center}
 .node-lock svg{width:14px;height:14px}
 .node.boss{width:80px;height:86px}
 .node-icon svg{width:22px;height:22px;display:block}

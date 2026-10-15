@@ -48,7 +48,7 @@ export function tileSvg(theme: Theme, index: number, opts: TileOptions = {}): st
   <rect x="2.5" y="12" width="95" height="101.5" rx="16" fill="url(#b-edge)" stroke="${rim}" stroke-width="2.4"/>
   <path d="M8 104 Q50 110 92 104" fill="none" stroke="#FFFFFF" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/>
   <rect x="2.5" y="2.5" width="95" height="101.5" rx="16" fill="url(#b-face)" stroke="${rim}" stroke-width="2.4"/>
-  <rect x="6.5" y="6.5" width="87" height="93.5" rx="12.5" fill="none" stroke="#FFFFFF" stroke-width="2.2"/>
+  <rect x="6.5" y="6.5" width="87" height="93.5" rx="12.5" fill="none" stroke="${theme.tile.highlight ?? '#FFFFFF'}" stroke-width="2.2"/>
   <path d="M12 8 H88 Q92 8 92 12 V22 Q50 30 8 22 V12 Q8 8 12 8Z" fill="url(#b-gloss)" opacity=".7"/>
   <g transform="translate(4 5.5) scale(0.92)">${art}</g>
   ${badge}

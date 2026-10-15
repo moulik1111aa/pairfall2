@@ -8,6 +8,7 @@
   --bg:#D9E4DC;--bg-deep:#C6D6CB;--surface:#FBF9F4;--ink:#26324A;--ink-soft:#5A6578;
   --accent:#E57FA5;--accent-deep:#C45D84;--accent-ink:#fff;--gold:#D9A63A;--danger:#C23B54;
   --tray:#EEF2EC;--tray-edge:#A8BDB0;--well:#DCE5DE;
+  --dim:#26324A;--ink-edge:#141B2B;--node-edge:#9DBBA9;--node-rim:#6F907D;--locked-bg:#E6ECE7;--locked-ink:#93A39A;
 }
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased}
@@ -22,11 +23,11 @@ button{font:inherit;color:inherit}
 /* Buttons are built like tiles: a face sitting on a visible edge that presses down. */
 .btn{appearance:none;border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px;
   min-height:56px;padding:0 28px;border-radius:18px;font-weight:700;font-size:18px;letter-spacing:.01em;
-  background:var(--ink);color:var(--surface);box-shadow:0 6px 0 #141B2B;transform:translateY(0);transition:transform .08s,box-shadow .08s}
-.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #141B2B}
+  background:var(--ink);color:var(--surface);box-shadow:0 6px 0 var(--ink-edge);transform:translateY(0);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink-edge)}
 .btn.secondary{background:var(--surface);color:var(--ink);box-shadow:0 6px 0 var(--tray-edge),inset 0 0 0 2px var(--tray-edge)}
 .btn.secondary:active{box-shadow:0 2px 0 var(--tray-edge),inset 0 0 0 2px var(--tray-edge)}
-.btn.small{min-height:44px;padding:0 18px;font-size:16px;border-radius:14px;box-shadow:0 4px 0 #141B2B}
+.btn.small{min-height:44px;padding:0 18px;font-size:16px;border-radius:14px;box-shadow:0 4px 0 var(--ink-edge)}
 .btn.small.secondary{box-shadow:0 4px 0 var(--tray-edge),inset 0 0 0 2px var(--tray-edge)}
 .icon-btn{appearance:none;border:0;cursor:pointer;width:48px;height:48px;border-radius:16px;display:grid;place-items:center;
   background:var(--surface);color:var(--ink);box-shadow:0 4px 0 var(--tray-edge),inset 0 0 0 2px var(--tray-edge)}
