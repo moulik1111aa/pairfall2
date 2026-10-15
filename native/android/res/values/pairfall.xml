@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Zen Garden backdrop: shown by the launch splash and behind the WebView before it paints. -->
+    <color name="pairfall_bg">#D9E4DC</color>
+</resources>
