@@ -6,7 +6,9 @@
 //
 //   node scripts/android.mjs
 //
-// Env: PAIRFALL_VERSION_CODE (default: GITHUB_RUN_NUMBER or 1).
+// Env: PAIRFALL_VERSION_CODE (default: GITHUB_RUN_NUMBER + 100, or 1 locally).
+// The +100 keeps codes above the first builds made in the earlier repository, so
+// every new APK installs as an update over them.
 import { execSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -17,7 +19,10 @@ const run = (cmd) => execSync(cmd, { cwd: root, stdio: 'inherit' });
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 const config = JSON.parse(readFileSync(join(root, 'capacitor.config.json'), 'utf8'));
 
-const versionCode = Number(process.env.PAIRFALL_VERSION_CODE ?? process.env.GITHUB_RUN_NUMBER ?? 1);
+export const VERSION_OFFSET = 100;
+const versionCode = Number(
+  process.env.PAIRFALL_VERSION_CODE ?? (process.env.GITHUB_RUN_NUMBER ? Number(process.env.GITHUB_RUN_NUMBER) + VERSION_OFFSET : 1),
+);
 if (!Number.isInteger(versionCode) || versionCode < 1) throw new Error(`bad version code: ${versionCode}`);
 const versionName = `${pkg.version} (${versionCode})`;
 
