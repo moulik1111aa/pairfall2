@@ -39,3 +39,39 @@ test('sound, music and vibration toggles are saved', async ({ page }) => {
   await page.reload();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pairfall.save')!).settings.music)).toBe(false);
 });
+
+test('themes unlock with progress and switch the whole look', async ({ page }) => {
+  await page.goto('/?debug');
+  await page.evaluate(() => localStorage.clear());
+  await page.goto('/?debug');
+  await page.getByRole('button', { name: 'Themes' }).click();
+  await expect(page.getByRole('button', { name: 'Reach level 15 to unlock' })).toBeDisabled();
+  await page.evaluate(() => (window as any).__app.save.update((d: any) => (d.level = 31)));
+  await page.getByRole('button', { name: 'Home' }).click();
+  await page.getByRole('button', { name: 'Themes' }).click();
+  await page.getByRole('button', { name: 'Use Neon Cosmos' }).click();
+  await expect(page.getByRole('button', { name: 'In use' })).toHaveCount(1);
+  const bg = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
+  expect(bg.toUpperCase()).toBe('#0E1330');
+  await page.reload();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pairfall.save')!).theme)).toBe('neon-cosmos');
+});
+
+test('tile numbers and left-handed layout apply in game', async ({ page }) => {
+  await page.goto('/?debug');
+  await page.evaluate(() => localStorage.clear());
+  await page.goto('/?debug');
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByText('Tile numbers', { exact: true }).click();
+  await page.getByText('Left-handed', { exact: true }).click();
+  await page.goto('/?debug&level=5');
+  await page.waitForSelector('.stage .tile');
+  await expect(page.locator('.powerbar')).toHaveClass(/left-handed/);
+  const numbered = await page.evaluate(async () => {
+    const bg = getComputedStyle(document.querySelector('.stage .tile')!).backgroundImage;
+    const url = bg.slice(5, -2);
+    const blob = await (await fetch(url)).blob();
+    return blob.type;
+  });
+  expect(numbered).toBe('image/png');
+});
