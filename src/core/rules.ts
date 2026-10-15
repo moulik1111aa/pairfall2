@@ -58,6 +58,8 @@ export class Rules {
   /** Frozen tiles whose count went down (but not to zero) on the last clear. */
   readonly lastChilled: number[] = [];
   readonly lastUnlocked: number[] = [];
+  /** A tile that turned wild because the last match left it without a twin, or -1. */
+  lastWildified = -1;
 
   constructor(level: LevelData, geo?: BoardGeometry) {
     if (level.kinds.length !== level.slots.length) throw new Error('kinds/slots length mismatch');
@@ -107,6 +109,7 @@ export class Rules {
       lastThawed: [],
       lastChilled: [],
       lastUnlocked: [],
+      lastWildified: -1,
     });
     return r;
   }
@@ -136,7 +139,11 @@ export class Rules {
   partnerIndex(kind: number): number {
     const tray = this.tray;
     if (tray.length === 0) return -1;
-    if (kind === WILD) return 0; // a wild takes the oldest waiting tile
+    if (kind === WILD) {
+      // a wild takes the oldest waiting tile (wilds never match each other)
+      for (let i = 0; i < tray.length; i++) if (this.kinds[tray[i]] !== WILD) return i;
+      return -1;
+    }
     for (let i = 0; i < tray.length; i++) if (this.kinds[tray[i]] === kind) return i;
     for (let i = 0; i < tray.length; i++) if (this.kinds[tray[i]] === WILD) return i;
     return -1;
@@ -149,6 +156,7 @@ export class Rules {
     this.lastThawed.length = 0;
     this.lastChilled.length = 0;
     this.lastUnlocked.length = 0;
+    this.lastWildified = -1;
     if (!this.canTap(slot)) return TapResult.Ignored;
     for (const f of this.board.remove(slot)) this.lastFreed.push(f);
     const idx = this.partnerIndex(this.kinds[slot]);
@@ -168,6 +176,7 @@ export class Rules {
     this.pairsCleared++;
     this.cleared[a] = 1;
     this.cleared[b] = 1;
+    if (this.kinds[a] === WILD || this.kinds[b] === WILD) this.passWild(this.kinds[a] === WILD ? b : a);
     // Frozen tiles that are uncovered thaw a step with every pair cleared.
     const frost = this.frost;
     for (const s of this.frozenSlots) {
@@ -185,6 +194,30 @@ export class Rules {
         lock.open = true;
         this.lastUnlocked.push(lock.slot);
       }
+    }
+  }
+
+  /**
+   * After a wild clears tile `x`, any tile of x's kind left without a twin turns
+   * wild, so every tile on the board can still be paired.
+   */
+  private passWild(x: number): void {
+    const kind = this.kinds[x];
+    let count = 0;
+    let pick = -1;
+    let pickLayer = -1;
+    const slots = this.board.geo.slots;
+    for (let s = 0; s < this.kinds.length; s++) {
+      if (this.kinds[s] !== kind || !this.board.isPresent(s)) continue;
+      count++;
+      if (slots[s].layer > pickLayer) {
+        pick = s;
+        pickLayer = slots[s].layer;
+      }
+    }
+    if (count % 2 === 1 && pick >= 0) {
+      this.kinds[pick] = WILD;
+      this.lastWildified = pick;
     }
   }
 
