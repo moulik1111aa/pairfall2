@@ -1,7 +1,7 @@
 // Promise-based access to generated levels. Generation runs in a Web Worker built
 // from the inlined worker bundle; if workers are unavailable it falls back to the
 // main thread (yielding first so the UI can paint).
-import { makeJourneyLevel, type Level } from './levels.ts';
+import { makeLevel, modeKey, type Level, type PlayMode } from './levels.ts';
 
 declare global {
   interface Window {
@@ -14,7 +14,7 @@ type Pending = { resolve: (l: Level) => void; reject: (e: Error) => void };
 let worker: Worker | null | undefined;
 let nextId = 1;
 const pending = new Map<number, Pending>();
-const cache = new Map<number, Promise<Level>>();
+const cache = new Map<string, Promise<Level>>();
 
 function getWorker(): Worker | null {
   if (worker !== undefined) return worker;
@@ -42,11 +42,11 @@ function getWorker(): Worker | null {
   return worker;
 }
 
-function generateOnMainThread(n: number): Promise<Level> {
+function generateOnMainThread(mode: PlayMode): Promise<Level> {
   return new Promise((resolve, reject) =>
     setTimeout(() => {
       try {
-        resolve(makeJourneyLevel(n));
+        resolve(makeLevel(mode));
       } catch (e) {
         reject(e as Error);
       }
@@ -54,32 +54,35 @@ function generateOnMainThread(n: number): Promise<Level> {
   );
 }
 
-function request(n: number): Promise<Level> {
+function request(mode: PlayMode): Promise<Level> {
   const w = getWorker();
-  if (!w) return generateOnMainThread(n);
+  if (!w) return generateOnMainThread(mode);
   const id = nextId++;
   return new Promise<Level>((resolve, reject) => {
     pending.set(id, { resolve, reject });
-    w.postMessage({ id, n });
-  }).catch(() => generateOnMainThread(n));
+    w.postMessage({ id, mode });
+  }).catch(() => generateOnMainThread(mode));
 }
 
-/** Get Journey level n (cached). */
-export function getLevel(n: number): Promise<Level> {
-  let p = cache.get(n);
+/** Get the level for a mode (cached). A number means that Journey level. */
+export function getLevel(m: PlayMode | number): Promise<Level> {
+  const mode: PlayMode = typeof m === 'number' ? { kind: 'journey', n: m } : m;
+  const key = modeKey(mode);
+  let p = cache.get(key);
   if (!p) {
-    p = request(n);
-    cache.set(n, p);
-    p.catch(() => cache.delete(n));
+    p = request(mode);
+    cache.set(key, p);
+    p.catch(() => cache.delete(key));
   }
   // keep the cache small
-  if (cache.size > 6) {
-    for (const k of cache.keys()) if (k < n - 1 || k > n + 2) cache.delete(k);
+  if (cache.size > 8) {
+    const first = cache.keys().next().value;
+    if (first !== undefined && first !== key) cache.delete(first);
   }
   return p;
 }
 
-/** Start generating level n in the background. */
-export function prefetch(n: number): void {
-  void getLevel(n);
+/** Start generating a level in the background. */
+export function prefetch(m: PlayMode | number): void {
+  void getLevel(m);
 }

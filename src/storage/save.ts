@@ -3,6 +3,7 @@
 // Capacitor Preferences in the Android app (Milestone 3).
 
 import { CONFIG, type PowerupId } from '../config.ts';
+import { freshDaily, type DailyState } from '../core/daily.ts';
 
 export const SAVE_VERSION = 1;
 const PRIMARY = 'pairfall.save';
@@ -28,6 +29,9 @@ export interface SaveData {
   settings: Settings;
   stats: { played: number; won: number; bestCombo: number; pairs: number };
   tutorialDone: boolean;
+  daily: DailyState;
+  /** Special tiles whose introduction card has been shown. */
+  seenIntro: string[];
 }
 
 export interface StorageAdapter {
@@ -47,6 +51,8 @@ export function freshSave(): SaveData {
     settings: { sound: true, music: true, vibration: true, colorBlind: false, leftHanded: false },
     stats: { played: 0, won: 0, bestCombo: 0, pairs: 0 },
     tutorialDone: false,
+    daily: freshDaily(),
+    seenIntro: [],
   };
 }
 
@@ -58,7 +64,14 @@ function parse(raw: string | null): SaveData | null {
     if (d.version !== SAVE_VERSION) return migrate(d);
     // fill in any fields added after the save was written
     const base = freshSave();
-    return { ...base, ...d, settings: { ...base.settings, ...d.settings }, stats: { ...base.stats, ...d.stats }, powerups: { ...base.powerups, ...d.powerups } } as SaveData;
+    return {
+      ...base,
+      ...d,
+      settings: { ...base.settings, ...d.settings },
+      stats: { ...base.stats, ...d.stats },
+      powerups: { ...base.powerups, ...d.powerups },
+      daily: { ...base.daily, ...d.daily },
+    } as SaveData;
   } catch {
     return null;
   }

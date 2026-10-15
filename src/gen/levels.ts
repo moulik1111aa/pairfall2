@@ -56,3 +56,33 @@ export function makeLevelFrom(id: string, settings: LevelSettings, options: Make
 export function makeJourneyLevel(n: number, options?: MakeOptions): Level {
   return makeLevelFrom(`journey:${n}`, settingsFor(n), options);
 }
+
+/** What is being played. */
+export type PlayMode = { kind: 'journey'; n: number } | { kind: 'daily'; date: string } | { kind: 'zen'; seed: number };
+
+/** Daily challenge settings: Normal difficulty with the level 25 mix (spec §6). */
+export function dailySettings(): LevelSettings {
+  return { ...settingsFor(25), band: 'normal', tutorial: false };
+}
+
+/**
+ * Zen settings: the level 20 mix, generated against a roomy tray of 7. The game
+ * itself runs with no tray limit at all.
+ */
+export function zenSettings(): LevelSettings {
+  return { ...settingsFor(20), band: 'easy', tutorial: false, limit: 7, targetPeak: 3 };
+}
+
+export function makeLevel(mode: PlayMode): Level {
+  switch (mode.kind) {
+    case 'journey':
+      return makeJourneyLevel(mode.n);
+    case 'daily':
+      return makeLevelFrom(`daily:${mode.date}`, dailySettings());
+    case 'zen':
+      return makeLevelFrom(`zen:${mode.seed}`, zenSettings());
+  }
+}
+
+export const modeKey = (m: PlayMode): string =>
+  m.kind === 'journey' ? `j:${m.n}` : m.kind === 'daily' ? `d:${m.date}` : `z:${m.seed}`;

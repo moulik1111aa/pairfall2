@@ -2,7 +2,10 @@
 // Plucks use Karplus–Strong string synthesis for a koto-like tone; bells are
 // inharmonic sine partials; wood taps are filtered noise.
 
-import { matchNotes, scaleFreq, YO, IN } from './scale.ts';
+import { matchNotes, scaleFreq, YO, IN, BASE_HZ } from './scale.ts';
+import type { ThemeSound } from '../themes/types.ts';
+
+const DEFAULT_FLAVOUR: ThemeSound = { scale: YO, base: BASE_HZ, instrument: 'koto', drone: [73.42, 110, 146.83] };
 
 type Ctx = AudioContext;
 
@@ -18,10 +21,27 @@ export class Sound {
   private padNodes: AudioNode[] = [];
   private readonly ksCache = new Map<number, AudioBuffer>();
   private noise: AudioBuffer | null = null;
+  private flavour: ThemeSound = DEFAULT_FLAVOUR;
 
   constructor(sfxOn: boolean, musicOn: boolean) {
     this.sfxOn = sfxOn;
     this.musicOn = musicOn;
+  }
+
+  /** Use a theme's scale, instrument and drone. Restarts the music if it is playing. */
+  setTheme(flavour: ThemeSound): void {
+    this.flavour = flavour;
+    this.ksCache.clear();
+    if (this.musicTimer) {
+      this.stopMusic();
+      setTimeout(() => this.musicOn && this.startMusic(), 400);
+    }
+  }
+
+  /** 'running' once audio can be heard; 'blocked' if the page has not been allowed to play sound. */
+  get state(): 'running' | 'blocked' | 'unsupported' | 'idle' {
+    if (!this.ctx) return typeof AudioContext === 'undefined' ? 'unsupported' : 'idle';
+    return this.ctx.state === 'running' ? 'running' : 'blocked';
   }
 
   /** Create or resume the audio context. Must run inside a user gesture the first time. */
@@ -104,7 +124,7 @@ export class Sound {
   match(combo: number): void {
     const t = this.now();
     if (t === null) return;
-    const [a, b] = matchNotes(combo);
+    const [a, b] = matchNotes(combo, this.flavour.scale, this.flavour.base);
     this.pluck(a, t, 0.5);
     this.pluck(b, t + 0.07, 0.45);
     if (combo >= 3) this.bell(b * 2, t + 0.12, 0.08 + Math.min(combo, 8) * 0.012, 1.4);
@@ -149,9 +169,10 @@ export class Sound {
     const t = this.now();
     if (t === null) return;
     this.danger(false);
-    [0, 2, 4, 5, 7, 9].forEach((s, i) => this.pluck(scaleFreq(s, YO), t + i * 0.09, 0.42));
-    this.bell(scaleFreq(10, YO), t + 0.6, 0.22, 2.4);
-    this.bell(scaleFreq(7, YO), t + 0.62, 0.12, 2.2);
+    const { scale, base } = this.flavour;
+    [0, 2, 4, 5, 7, 9].forEach((s, i) => this.pluck(scaleFreq(s, scale, base), t + i * 0.09, 0.42));
+    this.bell(scaleFreq(10, scale, base), t + 0.6, 0.22, 2.4);
+    this.bell(scaleFreq(7, scale, base), t + 0.62, 0.12, 2.2);
   }
 
   lose(): void {
@@ -170,7 +191,9 @@ export class Sound {
     this.musicBus.gain.cancelScheduledValues(ctx.currentTime);
     this.musicBus.gain.setTargetAtTime(0.32, ctx.currentTime, 1.2);
     // A soft drone on D and A, slowly breathing.
-    for (const [f, g] of [[73.42, 0.05], [110, 0.035], [146.83, 0.02]] as const) {
+    const gains = [0.05, 0.035, 0.02];
+    for (const [i, f] of this.flavour.drone.entries()) {
+      const g = gains[i] ?? 0.02;
       const o = ctx.createOscillator();
       o.type = 'sine';
       o.frequency.value = f;
@@ -194,7 +217,7 @@ export class Sound {
       const notes = 1 + Math.floor(Math.random() * 3);
       for (let i = 0; i < notes; i++) {
         const step = start + (Math.random() < 0.5 ? i : -i) + (Math.random() < 0.2 ? 2 : 0);
-        this.pluck(scaleFreq(step, YO, 146.83), t + i * (0.35 + Math.random() * 0.25), 0.22, this.musicBus);
+        this.pluck(scaleFreq(step, this.flavour.scale, this.flavour.base / 2), t + i * (0.35 + Math.random() * 0.25), 0.22, this.musicBus);
       }
     };
     phrase();
@@ -220,10 +243,42 @@ export class Sound {
     return this.ctx.currentTime + 0.005;
   }
 
-  /** Karplus–Strong plucked string, cached per pitch. */
+  /** A plucked note in the theme's instrument. */
   private pluck(freq: number, t: number, gain: number, bus: AudioNode = this.sfxBus): void {
+    const inst = this.flavour.instrument;
+    if (inst === 'synth') return this.synthPluck(freq, t, gain, bus);
+    this.ksPluck(freq, t, gain, bus, inst === 'sitar');
+    if (inst === 'sitar') this.ksPluck(freq * 1.002, t + 0.012, gain * 0.5, bus, true); // shimmer
+  }
+
+  /** Bright analogue-style pluck: detuned saws through a closing low-pass. */
+  private synthPluck(freq: number, t: number, gain: number, bus: AudioNode): void {
     const ctx = this.ctx!;
-    const key = Math.round(freq * 10);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.Q.value = 6;
+    lp.frequency.setValueAtTime(5200, t);
+    lp.frequency.exponentialRampToValueAtTime(500, t + 0.45);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(gain * 0.35, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+    lp.connect(g).connect(bus);
+    for (const detune of [-7, 7]) {
+      const o = ctx.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.value = freq;
+      o.detune.value = detune;
+      o.connect(lp);
+      o.start(t);
+      o.stop(t + 1);
+    }
+  }
+
+  /** Karplus–Strong plucked string, cached per pitch. */
+  private ksPluck(freq: number, t: number, gain: number, bus: AudioNode, bright: boolean): void {
+    const ctx = this.ctx!;
+    const key = Math.round(freq * 10) * 2 + (bright ? 1 : 0);
     let buf = this.ksCache.get(key);
     if (!buf) {
       const sr = ctx.sampleRate;
@@ -235,10 +290,10 @@ export class Sound {
       let prev = 0;
       for (let i = 0; i < n; i++) {
         // slightly low-passed noise burst → a softer, woody attack
-        prev = prev * 0.45 + (Math.random() * 2 - 1) * 0.55;
+        prev = bright ? Math.random() * 2 - 1 : prev * 0.45 + (Math.random() * 2 - 1) * 0.55;
         ring[i] = prev;
       }
-      const decay = 0.9965;
+      const decay = bright ? 0.998 : 0.9965;
       for (let i = 0, j = 0; i < out.length; i++) {
         const next = (j + 1) % n;
         const v = ring[j];

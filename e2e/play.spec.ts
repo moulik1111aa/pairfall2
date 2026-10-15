@@ -6,6 +6,17 @@ async function freshStart(page: Page, url = '/?debug') {
   await page.goto(url);
 }
 
+/** Close any "new tile" introduction cards. */
+async function dismissIntros(page: Page) {
+  for (let i = 0; i < 20; i++) {
+    if (await page.locator('.stage .tile').count()) return;
+    const b = page.getByRole('button', { name: 'Got it' });
+    if (await b.count()) await b.click();
+    else await page.waitForTimeout(150);
+  }
+  await page.waitForSelector('.stage .tile');
+}
+
 /** Tap a tile with a real touch on its element. */
 async function tapSlot(page: Page, slot: number) {
   await page.locator(`.tile[data-slot="${slot}"]`).tap();
@@ -41,7 +52,7 @@ test('first launch: play level 1 to a win, progress is saved', async ({ page }) 
 
   await page.goto('/');
   await expect(page.getByRole('button', { name: 'Play level 2' })).toBeVisible();
-  await page.getByRole('button', { name: 'Journey map' }).click();
+  await page.getByRole('button', { name: 'Journey', exact: true }).click();
   await expect(page.getByRole('button', { name: /Level 1, [23] stars/ })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Level 3, locked' })).toBeDisabled();
   expect(errors).toEqual([]);
@@ -74,6 +85,7 @@ test('filling the tray loses, danger shows one slot before', async ({ page }) =>
 
 test('blocked tiles ignore taps; pause sheet resumes', async ({ page }) => {
   await freshStart(page, '/?debug&level=37');
+  await dismissIntros(page);
   await page.waitForFunction(() => !!window.__pairfall);
   const blocked = await page.evaluate(() => {
     const g = window.__pairfall!.game;
@@ -85,4 +97,76 @@ test('blocked tiles ignore taps; pause sheet resumes', async ({ page }) => {
   await expect(page.getByRole('dialog', { name: 'Paused' })).toBeVisible();
   await page.getByRole('button', { name: 'Resume' }).click();
   await expect(page.getByRole('dialog', { name: 'Paused' })).toHaveCount(0);
+});
+
+test('new special tiles are introduced once', async ({ page }) => {
+  await freshStart(page, '/?debug&level=36');
+  await expect(page.getByRole('dialog', { name: 'Face-down tiles' })).toBeVisible();
+  await dismissIntros(page);
+  await page.goto('/?debug&level=36');
+  await page.waitForSelector('.stage .tile');
+  await expect(page.getByRole('button', { name: 'Got it' })).toHaveCount(0);
+  await expect(page.locator('.tile.frozen').first()).toBeVisible();
+  await expect(page.locator('.tile.locked')).toHaveCount(1);
+});
+
+test('power-ups: hint glows a tile, undo takes a tile back, shuffle keeps the board', async ({ page }) => {
+  await freshStart(page, '/?debug&level=12');
+  await dismissIntros(page);
+  await page.waitForFunction(() => !!window.__pairfall);
+  await page.getByRole('button', { name: /^Hint/ }).click();
+  await expect(page.locator('.tile.hint').first()).toBeVisible();
+  // a tile with no twin in the tray goes in; undo brings it back
+  const slot = await page.evaluate(() => {
+    const g = window.__pairfall!.game;
+    return g.board.freeSlots().find((s) => g.canTap(s))!;
+  });
+  await page.evaluate((s) => window.__pairfall!.tap(s), slot);
+  await page.getByRole('button', { name: /^Undo/ }).click();
+  expect(await page.evaluate(() => window.__pairfall!.game.tray.length)).toBe(0);
+  const before = await page.evaluate(() => [...window.__pairfall!.game.kinds].sort().join());
+  await page.getByRole('button', { name: /^Shuffle/ }).click();
+  const after = await page.evaluate(() => [...window.__pairfall!.game.kinds].sort().join());
+  expect(after).toBe(before);
+  // all free uses spent: the next hint costs coins
+  await expect(page.getByRole('button', { name: /^Hint, 20 coins/ })).toBeVisible();
+});
+
+test('lose then continue with an extra slot', async ({ page }) => {
+  await freshStart(page, '/?debug&level=11');
+  await page.waitForFunction(() => !!window.__pairfall);
+  const picks = await page.evaluate(() => {
+    const g = window.__pairfall!.game;
+    const seen = new Set<number>();
+    return g.board.freeSlots().filter((s) => !seen.has(g.kinds[s]) && seen.add(g.kinds[s]));
+  });
+  for (let i = 0; i < 4; i++) await tapSlot(page, picks[i]);
+  await expect(page.getByRole('dialog', { name: 'Tray full' })).toBeVisible({ timeout: 4000 });
+  await page.getByRole('button', { name: /Continue with \+1 slot/ }).click();
+  expect(await page.evaluate(() => window.__pairfall!.game.status)).toBe('playing');
+  expect(await page.evaluate(() => window.__pairfall!.game.limit)).toBe(5);
+  await expect(page.locator('.well')).toHaveCount(5);
+});
+
+test('daily challenge pays once and starts a streak', async ({ page }) => {
+  await freshStart(page, '/?debug');
+  await page.getByRole('button', { name: /Daily challenge/ }).click();
+  await dismissIntros(page);
+  await page.waitForFunction(() => !!window.__pairfall);
+  const sol = await page.evaluate(() => window.__pairfall!.level.solution as number[]);
+  for (const s of sol) await page.evaluate((slot) => window.__pairfall!.tap(slot), s);
+  await expect(page.getByRole('dialog', { name: 'Daily challenge cleared' })).toBeVisible({ timeout: 5000 });
+  await expect(page.getByText('Streak: 1 day')).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pairfall.save')!).coins)).toBe(150);
+});
+
+test('zen mode has no tray limit and offers a new board', async ({ page }) => {
+  await freshStart(page, '/?debug');
+  await page.getByRole('button', { name: /Zen/ }).click();
+  await dismissIntros(page);
+  await page.waitForFunction(() => !!window.__pairfall);
+  expect(await page.evaluate(() => window.__pairfall!.game.limit)).toBe(Infinity);
+  await expect(page.locator('.well')).toHaveCount(7);
+  await expect(page.getByRole('button', { name: /^\+1 Slot/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'New board' })).toBeVisible();
 });

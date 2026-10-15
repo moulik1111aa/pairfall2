@@ -1,13 +1,16 @@
-// Level-generation worker. Messages: { id, n } → { id, level } | { id, error }.
-import { makeJourneyLevel } from './levels.ts';
+// Level-generation worker. Messages: { id, mode } → { id, level } | { id, error }.
+import { makeLevel, type PlayMode } from './levels.ts';
 
-interface Req { id: number; n: number }
+interface Req {
+  id: number;
+  mode: PlayMode;
+}
 
 const scope = self as unknown as { onmessage: ((e: MessageEvent<Req>) => void) | null; postMessage(m: unknown): void };
 scope.onmessage = (e) => {
-  const { id, n } = e.data;
+  const { id, mode } = e.data;
   try {
-    scope.postMessage({ id, level: makeJourneyLevel(n) });
+    scope.postMessage({ id, level: makeLevel(mode) });
   } catch (err) {
     scope.postMessage({ id, error: String(err) });
   }

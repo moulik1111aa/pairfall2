@@ -18,7 +18,7 @@ export function scaleFreq(step: number, scale: readonly number[] = YO, base = BA
 }
 
 /** The two notes played when a pair clears: a rising interval that climbs with the combo. */
-export function matchNotes(combo: number): [number, number] {
+export function matchNotes(combo: number, scale: readonly number[] = YO, base = BASE_HZ): [number, number] {
   const step = Math.min(Math.max(combo, 1) - 1, 10);
-  return [scaleFreq(step), scaleFreq(step + 2)];
+  return [scaleFreq(step, scale, base), scaleFreq(step + 2, scale, base)];
 }
