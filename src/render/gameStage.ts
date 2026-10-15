@@ -32,6 +32,8 @@ export interface StageCallbacks {
   feedback?: Feedback;
   /** Space kept free below the tray (for the power-up bar), in px. */
   bottomReserve?: number;
+  /** Space kept free above the board (for tutorial guidance), in px. */
+  topReserve?: number;
   /** Colour-blind help: numbered tile designs. */
   numbers?: boolean;
   /** Tiles that start face-down. */
@@ -226,6 +228,13 @@ export class GameStage {
     return this.layoutState.tileW;
   }
 
+  /** Change the space kept above the board (e.g. when tutorial guidance goes away). */
+  setTopReserve(px: number): void {
+    if ((this.cb.topReserve ?? 0) === px) return;
+    this.cb.topReserve = px;
+    this.layout(true);
+  }
+
   layout(animate: boolean): void {
     const W = this.el.clientWidth;
     const H = this.el.clientHeight;
@@ -250,7 +259,7 @@ export class GameStage {
     this.trayEl.style.cssText = `left:${trayX - trayPad}px;top:${trayTop}px;width:${trayInnerW + trayPad * 2}px;height:${trayH}px;--well-w:${trayTileW}px;--well-gap:${trayGap}px;--well-h:${trayTileW * BODY_RATIO}px`;
 
     // Board: fit the footprint into the space above the tray.
-    const areaTop = 8;
+    const areaTop = 8 + (this.cb.topReserve ?? 0);
     const areaBottom = trayTop - 18;
     const areaW = W - 24;
     const areaH = areaBottom - areaTop;

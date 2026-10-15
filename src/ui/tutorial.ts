@@ -84,6 +84,8 @@ export class Tutorial {
   finish(): void {
     this.done = true;
     this.pointer.remove();
+    // Give the board the room the guidance was using.
+    this.stage.setTopReserve(0);
     this.coach.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' }).finished.then(
       () => this.coach.remove(),
       () => this.coach.remove(),
