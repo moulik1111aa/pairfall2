@@ -40,18 +40,56 @@ export function moveTo(el: HTMLElement, to: Pose, ms: number, opts: { lift?: num
 }
 
 /**
+ * Fly a tile along an arc: it lifts and swells with a slight spin, then lands with
+ * a small settle. Used for board → tray moves.
+ */
+export function flyTo(el: HTMLElement, to: Pose, ms: number, spin: number): Animation | null {
+  const from = currentTransform(el);
+  const end = poseTransform(to);
+  el.style.transform = end;
+  if (ms <= 0 || reducedMotion()) return null;
+  const at = (dx: number, dy: number, k: number, r: number) =>
+    `translate3d(${to.x + dx}px,${to.y + dy}px,0) scale(${to.s * k}) rotate(${r}deg)`;
+  return el.animate(
+    [
+      { transform: from },
+      { transform: at(0, -44, 1.14, spin), offset: 0.5, easing: 'cubic-bezier(.5,0,.7,1)' },
+      { transform: at(0, 3, 0.97, -spin * 0.15), offset: 0.82 },
+      { transform: at(0, 0, 1, 0) },
+    ],
+    { duration: ms, easing: 'cubic-bezier(.3,.7,.4,1)', fill: 'backwards' },
+  );
+}
+
+/** A small hop (uses the independent `translate` property so it composes with the pose). */
+export function hop(el: HTMLElement, px = 6, delay = 0): void {
+  if (reducedMotion()) return;
+  el.animate([{ translate: '0 0' }, { translate: `0 ${-px}px` }, { translate: '0 0' }], {
+    duration: 300,
+    delay,
+    easing: 'cubic-bezier(.3,.7,.4,1)',
+  });
+}
+
+/** Briefly light up an element's ::before overlay (a white flash on tiles). */
+export function flash(el: HTMLElement, ms = 220): void {
+  if (reducedMotion()) return;
+  el.animate([{ opacity: 0 }, { opacity: 0.85 }, { opacity: 0 }], { duration: ms, pseudoElement: '::before' });
+}
+
+/**
  * Pop an element out of existence (swell, then shrink and fade) around its centre.
  * `w`/`h` are the element's unscaled size (transform-origin is the top-left corner).
  */
-export function popOut(el: HTMLElement, at: Pose, w: number, h: number, ms = 260): Promise<void> {
+export function popOut(el: HTMLElement, at: Pose, w: number, h: number, ms = 260, spin = 0): Promise<void> {
   if (reducedMotion()) return Promise.resolve();
-  const around = (k: number): string =>
-    poseTransform({ x: at.x + (w * at.s * (1 - k)) / 2, y: at.y + (h * at.s * (1 - k)) / 2, s: at.s * k });
+  const around = (k: number, r: number): string =>
+    `${poseTransform({ x: at.x + (w * at.s * (1 - k)) / 2, y: at.y + (h * at.s * (1 - k)) / 2, s: at.s * k })} rotate(${r}deg)`;
   const a = el.animate(
     [
-      { transform: around(1), opacity: 1 },
-      { transform: around(1.22), opacity: 1, offset: 0.35 },
-      { transform: around(0.2), opacity: 0 },
+      { transform: around(1, 0), opacity: 1 },
+      { transform: around(1.28, spin * 0.4), opacity: 1, offset: 0.35 },
+      { transform: around(0.15, spin), opacity: 0 },
     ],
     { duration: ms, easing: EASE_IN_OUT, fill: 'forwards' },
   );
@@ -61,10 +99,10 @@ export function popOut(el: HTMLElement, at: Pose, w: number, h: number, ms = 260
 /** Small horizontal shake (lose / invalid). */
 export function shake(el: HTMLElement, px = 8, ms = 420): void {
   if (reducedMotion()) return;
+  // the independent `translate` property composes with the element's own transform
   el.animate(
-    [0, -px, px, -px * 0.7, px * 0.5, 0].map((dx) => ({ transform: `translateX(${dx}px)` })),
-    // 'add' composes with the element's own transform (tiles are positioned by transform)
-    { duration: ms, easing: 'ease-out', composite: 'add' },
+    [0, -px, px, -px * 0.7, px * 0.5, 0].map((dx) => ({ translate: `${dx}px 0` })),
+    { duration: ms, easing: 'ease-out' },
   );
 }
 

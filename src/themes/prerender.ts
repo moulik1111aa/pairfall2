@@ -28,27 +28,75 @@ export function tileSvg(theme: Theme, kind: number): string {
 </svg>`;
 }
 
-const cache = new Map<string, string[]>();
+const svgCache = new Map<string, string[]>();
+const rasterCache = new Map<string, string[]>();
+const pending = new Map<string, Promise<string[]>>();
 
-/** Object URLs for every tile kind of a theme (created once per theme). */
-export function tileUrls(theme: Theme): string[] {
-  let urls = cache.get(theme.id);
+/** Pixel width tiles are rasterised at: the largest on-screen tile (76 CSS px) at a 3× screen. */
+export const RASTER_W = 240;
+
+function svgUrls(theme: Theme): string[] {
+  let urls = svgCache.get(theme.id);
   if (!urls) {
     urls = theme.tiles.map((_, k) => URL.createObjectURL(new Blob([tileSvg(theme, k)], { type: 'image/svg+xml' })));
-    cache.set(theme.id, urls);
+    svgCache.set(theme.id, urls);
   }
   return urls;
 }
 
-/** Decode every tile image up front so the first tap never stalls. */
+/**
+ * Image URLs for every tile kind of a theme. Once `prepareTiles` has finished these
+ * are pre-rasterised PNGs (cheap to draw and scale); before that, the SVG originals.
+ */
+export function tileUrls(theme: Theme): string[] {
+  return rasterCache.get(theme.id) ?? svgUrls(theme);
+}
+
+/**
+ * Rasterise each tile's SVG once into a PNG. Drawing a bitmap is far cheaper than
+ * re-rendering vector art (with its blur shadow) whenever a tile changes size.
+ */
+export function prepareTiles(theme: Theme): Promise<string[]> {
+  const done = rasterCache.get(theme.id);
+  if (done) return Promise.resolve(done);
+  let p = pending.get(theme.id);
+  if (!p) {
+    p = Promise.all(svgUrls(theme).map((src) => rasterise(src))).then(
+      (urls) => {
+        rasterCache.set(theme.id, urls);
+        return urls;
+      },
+      () => svgUrls(theme),
+    );
+    pending.set(theme.id, p);
+  }
+  return p;
+}
+
+async function rasterise(src: string): Promise<string> {
+  const img = new Image();
+  img.src = src;
+  await img.decode();
+  const w = RASTER_W;
+  const h = Math.round((RASTER_W * TILE_H) / TILE_W);
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return src;
+  ctx.drawImage(img, 0, 0, w, h);
+  const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/png'));
+  if (!blob) return src;
+  const url = URL.createObjectURL(blob);
+  const out = new Image();
+  out.src = url;
+  await out.decode().catch(() => undefined);
+  return url;
+}
+
+/** Prepare (rasterise and decode) every tile image up front so the first tap never stalls. */
 export async function warmTiles(theme: Theme): Promise<void> {
-  await Promise.all(
-    tileUrls(theme).map((src) => {
-      const img = new Image();
-      img.src = src;
-      return img.decode().catch(() => undefined);
-    }),
-  );
+  await prepareTiles(theme);
 }
 
 export function backdropUrl(theme: Theme): string {

@@ -1,7 +1,9 @@
 // Home screen. Its one orchestrated moment: two tiles drop in, meet, and burst.
 
 import { App, html, type Screen } from './app.ts';
-import { coinsBadge } from './icons.ts';
+import { coinsBadge, ICONS } from './icons.ts';
+import { openSheet } from './overlay.ts';
+import { settingsToggles } from './settings.ts';
 import { tileUrls } from '../themes/prerender.ts';
 import { Particles } from '../render/particles.ts';
 import { reducedMotion, EASE_BACK, EASE_IN_OUT } from '../render/tweens.ts';
@@ -14,7 +16,7 @@ export function homeScreen(app: App): Screen {
   const kind = (level * 7) % app.theme.tiles.length;
   const url = tileUrls(app.theme)[kind];
   const el = html(`<section class="screen home" aria-label="Home">
-    <div class="home-top">${coinsBadge(app.save.data.coins)}</div>
+    <div class="home-top"><button class="icon-btn sound-btn" aria-label="Sound settings">${ICONS.sound}</button>${coinsBadge(app.save.data.coins)}</div>
     <div class="hero" aria-hidden="true">
       <div class="hero-tile a" style="background-image:url('${url}')"></div>
       <div class="hero-tile b" style="background-image:url('${url}')"></div>
@@ -28,6 +30,11 @@ export function homeScreen(app: App): Screen {
   </section>`);
   el.querySelector('.play-btn')!.addEventListener('click', () => app.show(playScreen(level)));
   el.querySelector('.map-btn')!.addEventListener('click', () => app.show(mapScreen));
+  el.querySelector('.sound-btn')!.addEventListener('click', () => {
+    const sheet = openSheet(el, '<h2>Sound</h2><p>Changes apply straight away.</p>', [{ label: 'Done', run: () => sheet.remove() }], 'Sound settings');
+    const box = sheet.querySelector('.sheet')!;
+    box.insertBefore(settingsToggles(app), box.querySelector('.actions'));
+  });
   prefetch(level);
 
   const hero = el.querySelector<HTMLElement>('.hero')!;

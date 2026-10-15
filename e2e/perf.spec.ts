@@ -1,12 +1,14 @@
 import { test, expect } from 'playwright/test';
 
 // Stress check (spec §11): biggest board + heavy particle bursts with the CPU slowed
-// 4× as a stand-in for a phone. Headless Chromium paints at 60 Hz, so we look for
-// dropped frames: the 95th-percentile frame gap must stay near one 60 Hz frame.
+// 4× as a stand-in for a phone. Headless Chromium paints at 60 Hz in software, so we
+// count dropped frames: fewer than 5% of frames may take longer than one 60 Hz frame
+// (the same bar as a 95th-percentile frame time under 20 ms).
 test('120-tile board with particle bursts keeps frames smooth under 4× CPU throttling', async ({ page }) => {
   await page.goto('/?debug&level=60');
   await page.waitForFunction(() => !!window.__pairfall);
   expect(await page.locator('.tile').count()).toBe(120);
+  await page.waitForTimeout(1500); // let the opening deal-in animation finish
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
 
@@ -22,19 +24,19 @@ test('120-tile board with particle bursts keeps frames smooth under 4× CPU thro
       if (running) requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);
-    // play 24 moves quickly: tile flights, pair pops, combo bursts (~200 particles live)
-    for (let i = 0; i < 24; i++) {
+    // 40 quick moves: tile flights, pair pops, shockwaves, combo bursts
+    for (let i = 0; i < 40; i++) {
       pf.tap(sol[i]);
       await new Promise((r) => setTimeout(r, 90));
     }
     await new Promise((r) => setTimeout(r, 600));
     running = false;
     gaps.shift();
-    gaps.sort((a, b) => a - b);
-    return { p95: gaps[Math.floor(gaps.length * 0.95)], max: gaps[gaps.length - 1], frames: gaps.length };
+    const slow = gaps.filter((g) => g > 20).length;
+    return { frames: gaps.length, slow, slowShare: slow / gaps.length, max: Math.max(...gaps) };
   });
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
-  console.log('frame gaps (ms):', stats);
-  expect(stats.frames).toBeGreaterThan(60);
-  expect(stats.p95).toBeLessThan(25);
+  console.log('frames:', stats);
+  expect(stats.frames).toBeGreaterThan(120);
+  expect(stats.slowShare).toBeLessThan(0.05);
 });
