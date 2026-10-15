@@ -385,7 +385,7 @@ export function playScreen(m: number | PlayMode) {
           stage = new GameStage(area, g, app.theme, {
             onTap,
             feedback: app.feedback,
-            bottomReserve: 78,
+            bottomReserve: 84,
             numbers,
             mystery: level.specials?.mystery,
             onEnd(result) {
