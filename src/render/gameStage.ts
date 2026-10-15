@@ -5,7 +5,7 @@
 import { WILD, type Game, type GameEvent } from '../core/game.ts';
 import type { Slot } from '../core/board.ts';
 import type { Theme } from '../themes/types.ts';
-import { tileUrls, imageIndex, MYSTERY_IMAGE, TILE_W, TILE_H } from '../themes/prerender.ts';
+import { tileUrls, imageIndex, iceImage, MYSTERY_IMAGE, TILE_W, TILE_H } from '../themes/prerender.ts';
 import { Particles } from './particles.ts';
 import { moveTo, flyTo, popOut, shake, hop, flash, wait, reducedMotion, poseTransform, EASE_BACK, type Pose } from './tweens.ts';
 import { silentFeedback, type Feedback } from './feedback.ts';
@@ -82,6 +82,7 @@ export class GameStage {
     this.urls = tileUrls(theme, { numbers: cb.numbers });
     this.el = document.createElement('div');
     this.el.className = 'stage';
+    this.el.style.setProperty('--ice', `url("${iceImage()}")`);
     this.el.innerHTML = `<div class="tray"><div class="tray-glow"></div><div class="tray-wells"></div></div><div class="tiles"></div>`;
     parent.appendChild(this.el);
     this.tilesLayer = this.el.querySelector('.tiles')!;
@@ -349,8 +350,7 @@ export class GameStage {
           for (const s of ev.slots) {
             const b = this.tileEls[s].querySelector('.ice b');
             if (b) b.textContent = String(this.game.frostOf(s));
-            this.tileEls[s].querySelector('.ice')?.animate([{ scale: '1' }, { scale: '1.08' }, { scale: '1' }], { duration: 300 });
-            this.paintFace(s);
+            this.tileEls[s].setAttribute('aria-label', this.label(s));
           }
           break;
         case 'thawed':
