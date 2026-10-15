@@ -24,6 +24,11 @@ export function settingsScreen(app: App): Screen {
     <div class="sub-scroll">
       <div class="setting-list"></div>
       <p class="sound-note" role="status" hidden></p>
+      <div class="preview-tools" hidden>
+        <h2>Preview tools</h2>
+        <p>Only in the preview link, to try later features quickly. Not in the app.</p>
+        <button class="btn small secondary jump-btn">Unlock levels up to 40 and add 500 coins</button>
+      </div>
       <div class="danger-zone">
         <button class="btn small secondary reset-btn">Start over</button>
       </div>
@@ -56,6 +61,18 @@ export function settingsScreen(app: App): Screen {
     list.appendChild(item);
   }
   setTimeout(showSoundState, 300);
+
+  const build = (window as unknown as { __BUILD__?: { preview?: boolean } }).__BUILD__;
+  if (build?.preview || app.debug) {
+    el.querySelector<HTMLElement>('.preview-tools')!.hidden = false;
+    el.querySelector('.jump-btn')!.addEventListener('click', () => {
+      app.save.update((d) => {
+        d.level = Math.max(d.level, 40);
+        d.coins += 500;
+      });
+      app.toast('Levels up to 40 unlocked and 500 coins added. Pick any level on the Journey map.');
+    });
+  }
 
   const reset = el.querySelector<HTMLButtonElement>('.reset-btn')!;
   let armed = false;
