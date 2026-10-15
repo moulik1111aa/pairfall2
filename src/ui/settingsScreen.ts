@@ -5,6 +5,7 @@ import { ICONS } from './icons.ts';
 import { homeScreen } from './home.ts';
 import { freshSave, type Settings } from '../storage/save.ts';
 import { themeById } from '../themes/registry.ts';
+import { HINDI_SETTING } from './i18n.ts';
 
 const ROWS: { key: keyof Settings; label: string; note: string }[] = [
   { key: 'sound', label: 'Sound effects', note: 'Taps, matches and chimes.' },
@@ -12,6 +13,12 @@ const ROWS: { key: keyof Settings; label: string; note: string }[] = [
   { key: 'vibration', label: 'Vibration', note: 'Short buzzes on taps and matches.' },
   { key: 'colorBlind', label: 'Tile numbers', note: 'Adds a number to each tile design, so pairs never depend on colour.' },
   { key: 'leftHanded', label: 'Left-handed', note: 'Mirrors the power-up bar.' },
+  // Always shown in both languages, so it can be found either way.
+  {
+    key: 'hindi',
+    label: `Hindi instructions <span class="hi-inline" lang="hi">हिंदी निर्देश</span>`,
+    note: `${HINDI_SETTING.en}<span class="hi" lang="hi">${HINDI_SETTING.hi}</span>`,
+  },
 ];
 
 export function settingsScreen(app: App): Screen {

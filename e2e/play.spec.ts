@@ -170,3 +170,69 @@ test('zen mode has no tray limit and offers a new board', async ({ page }) => {
   await expect(page.getByRole('button', { name: /^\+1 Slot/ })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'New board' })).toBeVisible();
 });
+test('How to play: one big card at a time, English with Hindi, Back / Next and section tabs', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await freshStart(page);
+  await expect(page.locator('.tagline .hi')).toHaveText('जोड़ियाँ मिलाएँ, ट्रे खाली रखें।');
+  await page.getByRole('button', { name: 'How to play' }).click();
+
+  const card = page.locator('.help-card-big');
+  await expect(card.locator('h2 .en')).toHaveText('Tap a tile');
+  await expect(card.locator('h2 .hi')).toHaveText('टाइल पर टैप करें');
+  await expect(page.locator('.help-count')).toHaveText('1 of 18');
+  await expect(page.locator('.help-prev')).toBeDisabled();
+  // Large type for easy reading.
+  expect(parseFloat(await card.locator('p .en').evaluate((e) => getComputedStyle(e.parentElement!).fontSize))).toBeGreaterThanOrEqual(19);
+
+  await page.locator('.help-next').click();
+  await expect(card.locator('h2 .en')).toHaveText('Make pairs');
+  await page.locator('.help-prev').click();
+  await expect(card.locator('h2 .en')).toHaveText('Tap a tile');
+
+  // Tabs jump to a section; every card fits without scrolling.
+  await page.locator('.help-tab[data-section="specials"]').click();
+  await expect(card.locator('h2 .en')).toHaveText('Face-down tiles');
+  await page.locator('.help-next').click();
+  await expect(card.locator('h2 .hi')).toHaveText('जमी हुई टाइलें');
+  await expect(card.locator('.help-note')).toContainText('From level 20');
+  for (let i = 0; i < 18; i++) {
+    expect(await card.evaluate((e) => e.scrollHeight <= e.clientHeight + 1)).toBe(true);
+    if (await page.locator('.help-next .en').textContent() === 'Done') break;
+    await page.locator('.help-next').click();
+  }
+  await page.locator('.help-next').click(); // Done
+  await expect(page.getByRole('button', { name: 'Start playing' })).toBeVisible();
+
+  // The tutorial coach speaks both languages.
+  await page.getByRole('button', { name: 'Start playing' }).click();
+  await expect(page.locator('.coach .en')).toHaveText('Tap a tile to move it into the tray');
+  await expect(page.locator('.coach .hi')).toHaveText('किसी टाइल पर टैप करें, वह ट्रे में चली जाएगी');
+
+  // Turn Hindi off: English only.
+  await page.goto('/?debug');
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByRole('switch', { name: /Hindi instructions/ }).uncheck();
+  await page.getByRole('button', { name: 'Home' }).click();
+  await expect(page.locator('.tagline')).toHaveText('Match the pairs. Keep the tray clear.');
+  await expect(page.locator('.tagline .hi')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test('special-tile introduction explains frozen tiles in both languages', async ({ page }) => {
+  await freshStart(page);
+  await page.evaluate(() => {
+    const app = (window as unknown as { __app: { save: { update(fn: (d: { level: number; seenIntro: string[] }) => void): void } } }).__app;
+    app.save.update((d) => {
+      d.level = 20;
+      d.seenIntro = ['mystery'];
+    });
+  });
+  await page.goto('/?debug&level=20');
+  const card = page.getByRole('dialog', { name: 'Frozen tiles' });
+  await expect(card).toBeVisible({ timeout: 15000 });
+  await expect(card.locator('h2 .hi')).toHaveText('जमी हुई टाइलें');
+  await expect(card.locator('p .hi')).toContainText('बर्फ़');
+  // The picture shows the ice itself, not just the counter.
+  expect(await card.locator('.ice').evaluate((e) => getComputedStyle(e).backgroundImage)).toContain('url(');
+});

@@ -12,6 +12,8 @@ import { dayKey, currentStreak, clearedToday } from '../core/daily.ts';
 import { themesScreen } from './themes.ts';
 import { statsScreen } from './stats.ts';
 import { settingsScreen } from './settingsScreen.ts';
+import { TEXT } from './i18n.ts';
+import { helpScreen } from './help.ts';
 
 export function homeScreen(app: App): Screen {
   const level = app.save.data.level;
@@ -26,13 +28,13 @@ export function homeScreen(app: App): Screen {
       ? `Keep your ${streak}-day streak going`
       : 'New board each day';
   const el = html(`<section class="screen home" aria-label="Home">
-    <div class="home-top"><button class="icon-btn settings-btn" aria-label="Settings">${ICONS.gear}</button>${coinsBadge(app.save.data.coins)}</div>
+    <div class="home-top"><div class="home-top-left"><button class="icon-btn settings-btn" aria-label="Settings">${ICONS.gear}</button><button class="icon-btn help-btn" aria-label="How to play">${ICONS.help}</button></div>${coinsBadge(app.save.data.coins)}</div>
     <div class="hero" aria-hidden="true">
       <div class="hero-tile a" style="background-image:url('${url}')"></div>
       <div class="hero-tile b" style="background-image:url('${url}')"></div>
     </div>
     <h1 class="wordmark">Pairfall</h1>
-    <p class="tagline">Match the pairs. Keep the tray clear.</p>
+    <p class="tagline">${app.t(TEXT.tagline)}</p>
     <div class="home-actions">
       <button class="btn play-btn">${level === 1 ? 'Start playing' : `Play level ${level}`}</button>
       <div class="mode-row">
@@ -49,6 +51,7 @@ export function homeScreen(app: App): Screen {
   el.querySelector('.play-btn')!.addEventListener('click', () => app.show(playScreen(level)));
   el.querySelector('.map-btn')!.addEventListener('click', () => app.show(mapScreen));
   el.querySelector('.settings-btn')!.addEventListener('click', () => app.show(settingsScreen));
+  el.querySelector('.help-btn')!.addEventListener('click', () => app.show(helpScreen));
   el.querySelector('.themes-btn')!.addEventListener('click', () => app.show(themesScreen));
   el.querySelector('.stats-btn')!.addEventListener('click', () => app.show(statsScreen));
   el.querySelector('.daily-btn')!.addEventListener('click', () => app.show(playScreen({ kind: 'daily', date: today })));

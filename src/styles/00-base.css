@@ -3,6 +3,7 @@
 :root{
   --font-display:"Noto Serif","Source Serif 4","Source Serif Pro",Georgia,"Times New Roman",serif;
   --font-ui:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;
+  --font-hi:"Noto Sans Devanagari","Mukta","Hind","Nirmala UI","Mangal",system-ui,sans-serif;
   /* The Android shell injects --safe-area-inset-* (camera cutout, visible system bars). */
   --safe-top:max(var(--safe-area-inset-top,env(safe-area-inset-top,0px)),12px);
   --safe-bottom:max(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)),10px);
@@ -42,3 +43,9 @@ button{font:inherit;color:inherit}
 
 .toast{position:absolute;left:50%;bottom:calc(var(--safe-bottom) + 24px);transform:translateX(-50%);z-index:9000;background:var(--ink);color:var(--surface);
   padding:12px 18px;border-radius:14px;font-size:15px;max-width:calc(100% - 32px);text-align:center}
+
+/* Hindi alongside English: the Hindi line sits under the English one. */
+.hi{display:block;margin-top:.25em;font-family:var(--font-hi);font-size:.94em;line-height:1.5;opacity:.86}
+.hi-inline{font-family:var(--font-hi);font-weight:600;opacity:.75;margin-left:.35em}
+h1 .hi,h2 .hi{font-size:.6em;font-weight:600;margin-top:.35em;line-height:1.3}
+.toast .hi{opacity:.9}
