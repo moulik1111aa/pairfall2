@@ -386,6 +386,8 @@ export function playScreen(m: number | PlayMode) {
             onTap,
             feedback: app.feedback,
             bottomReserve: 84,
+            // Tutorial levels keep room above the board for the guidance bubble (taller with Hindi).
+            topReserve: level.settings.tutorial && mode.kind === 'journey' ? (app.hindi ? 128 : 72) : 0,
             numbers,
             mystery: level.specials?.mystery,
             onEnd(result) {

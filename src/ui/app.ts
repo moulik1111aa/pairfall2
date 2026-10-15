@@ -36,7 +36,8 @@ export class App {
   /** The Android app's native plugin; null in a browser. */
   readonly native: PairfallPlugin | null;
   private current: Screen | null = null;
-  private lastBackAt = -Infinity;
+  /** Until when a second back press on Home leaves the app (while the hint is showing). */
+  private exitUntil = -Infinity;
 
   constructor(root: HTMLElement, storage: StorageAdapter = browserStorage(), native: PairfallPlugin | null = null) {
     this.root = root;
@@ -171,14 +172,14 @@ export class App {
       return;
     }
     const now = performance.now();
-    if (now - this.lastBackAt < 2000) {
-      this.lastBackAt = -Infinity;
+    if (now < this.exitUntil) {
+      this.exitUntil = -Infinity;
       this.save.save();
       if (this.native) quietly(this.native.exit());
       return;
     }
-    this.lastBackAt = now;
-    this.toast(TEXT.pressBackAgain, 2000);
+    // A generous window, matching how long the hint stays up, so a slower second press still counts.
+    this.exitUntil = now + this.toast(TEXT.pressBackAgain, 2600);
   }
 
   /** Show instructions in Hindi as well as English? */
@@ -192,7 +193,7 @@ export class App {
   }
 
   /** A short message at the bottom. Instructions (Bi) get Hindi too, and a little longer on screen. */
-  toast(text: string | Bi, ms = 3200): void {
+  toast(text: string | Bi, ms = 3200): number {
     const t = document.createElement('div');
     t.className = 'toast';
     t.setAttribute('role', 'status');
@@ -203,6 +204,7 @@ export class App {
     }
     this.root.appendChild(t);
     setTimeout(() => t.remove(), ms);
+    return ms;
   }
 }
 

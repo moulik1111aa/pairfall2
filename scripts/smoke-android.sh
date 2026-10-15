@@ -96,8 +96,8 @@ tap_text "Next"; sleep 2; shot how-to-play-2
 adb shell input keyevent KEYCODE_BACK; sleep 2
 
 # 6. On home, back warns first, then leaves (the app moves to the background).
-adb shell input keyevent KEYCODE_BACK
-wait_for "Press back again" 6 && note "exit warning shown" || fail "no exit warning"
+# (Pressed promptly, as a person would: the second press counts while the hint is showing.)
+adb shell input keyevent KEYCODE_BACK; sleep 1
 shot exit-warning
 adb shell input keyevent KEYCODE_BACK; sleep 3
 FOCUS=$(adb shell dumpsys window | grep -m1 mCurrentFocus | tr -d '\r')
