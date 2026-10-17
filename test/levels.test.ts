@@ -14,7 +14,7 @@ test('win rates land in band for levels 11+ and are never harder than intended',
   let inBand = 0, total = 0;
   for (let n = 1; n <= 120; n++) {
     const L = makeJourneyLevel(n);
-    const b = BANDS[L.settings.band];
+    const b = L.settings.range;
     assert.ok(L.winRate >= b.min - 0.05, `level ${n} (${L.settings.band}) too hard: ${L.winRate}`);
     if (n >= 11) {
       total++;

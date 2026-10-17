@@ -26,7 +26,18 @@ export function specialPicture(app: App, key: SpecialKey, cls = 'intro-tile'): s
       return pic(3, `<div class="ice" style="--ice:url('${iceImage()}')"><b>2</b></div>`);
     case 'locks':
       return pic(6, `<div class="padlock">${ICONS.lock.replace('currentColor', '#F2B33D').replace('currentColor', '#26324A')}</div>`);
+    case 'bombs':
+      return pic(9, `<div class="bomb">${ICONS.bomb}<b>6</b></div>`);
   }
+}
+
+/** The edge rule: a 3 × 3 block where only the boxed-in centre tile is dim. */
+export function edgePicture(app: App): string {
+  const urls = tileUrls(app.theme);
+  const kinds = [2, 7, 4, 11, 5, 1, 8, 3, 10];
+  return `<div class="edge-pic" aria-hidden="true">${kinds
+    .map((k, i) => `<div class="tile${i === 4 ? ' blocked' : ''}" style="background-image:url('${urls[k]}')">${i === 1 ? `<div class="help-finger">${ICONS.finger}</div>` : ''}</div>`)
+    .join('')}</div>`;
 }
 
 type Section = 'basics' | 'powerups' | 'specials' | 'modes';
@@ -51,9 +62,10 @@ function cards(app: App): Card[] {
       kinds[i] === undefined ? '<span class="well"></span>' : `<span class="well" style="background-image:url('${urls[kinds[i]]}')"></span>`,
     ).join('')}</div>`;
   const basicsPictures = [
-    `<div class="help-pic-row">${tile(0, `<div class="help-finger">${ICONS.finger}</div>`)}</div>`,
+    edgePicture(app),
     `<div class="help-pic-row pair">${tile(4)}${tile(4)}</div>`,
     tray([1, 5, 9, 13], CONFIG.trayLimit.normal + 1),
+    icon(ICONS.clock),
     `<div class="help-pic-row">${icon(starIcon(true))}</div>`,
     `<div class="help-combo">×3</div>`,
     `<div class="help-stars">${starIcon(true)}${starIcon(true)}${starIcon(true)}</div>`,
@@ -71,7 +83,7 @@ function cards(app: App): Card[] {
         note: HELP_TEXT.fromLevel(INTRO[k]),
       }),
     ),
-    ...MODES.map((m, i): Card => ({ section: 'modes', picture: icon(i === 0 ? ICONS.calendar : ICONS.leaf), title: m.title, text: m.text })),
+    ...MODES.map((m, i): Card => ({ section: 'modes', picture: icon([ICONS.calendar, ICONS.jump, ICONS.leaf][i]), title: m.title, text: m.text })),
   ];
 }
 

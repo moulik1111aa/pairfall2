@@ -16,6 +16,12 @@ export interface Specials {
   readonly frozen?: Readonly<Record<number, number>>;
   /** Padlocked tiles, each opened once both of its key tiles have been cleared. */
   readonly locks?: readonly { readonly slot: number; readonly keys: readonly [number, number] }[];
+  /**
+   * Bomb tiles: slot → fuse. The fuse burns down by one with every tap; the bomb must
+   * be cleared (matched) by the time the player has made `fuse` taps, or it goes off
+   * and the level is lost.
+   */
+  readonly bombs?: Readonly<Record<number, number>>;
 }
 
 export interface LevelData {
@@ -46,6 +52,11 @@ export class Rules {
   readonly cleared: Uint8Array;
   /** Slots that started frozen (the only ones whose frost can change). */
   readonly frozenSlots: readonly number[];
+  /** Fuse per slot (0 = not a bomb). */
+  readonly fuse: Int32Array;
+  readonly bombSlots: readonly number[];
+  /** Bomb that went off, or -1. */
+  exploded = -1;
   pairsCleared = 0;
 
   // ── results of the last tap ──
@@ -80,6 +91,15 @@ export class Rules {
       }
     }
     this.frozenSlots = frozen;
+    this.fuse = new Int32Array(n);
+    const bombs: number[] = [];
+    for (const [slot, f] of Object.entries(sp?.bombs ?? {})) {
+      if (f > 0) {
+        this.fuse[Number(slot)] = f;
+        bombs.push(Number(slot));
+      }
+    }
+    this.bombSlots = bombs;
     this.locks = (sp?.locks ?? []).map((l, i) => {
       this.lockOf[l.slot] = i;
       this.keyOf[l.keys[0]] = i;
@@ -102,6 +122,9 @@ export class Rules {
       locks: this.locks.map((l) => ({ ...l })),
       cleared: this.cleared.slice(),
       frozenSlots: this.frozenSlots,
+      fuse: this.fuse,
+      bombSlots: this.bombSlots,
+      exploded: this.exploded,
       pairsCleared: this.pairsCleared,
       lastPartner: -1,
       lastPartnerIndex: -1,
@@ -121,6 +144,17 @@ export class Rules {
 
   isFrozen(slot: number): boolean {
     return this.frost[slot] > 0;
+  }
+
+  /** Taps made so far (every tap removes one tile from the board; Undo puts it back). */
+  get taps(): number {
+    return this.board.size - this.board.remaining;
+  }
+
+  /** Taps left before a bomb goes off (Infinity for tiles that aren't live bombs). */
+  fuseLeft(slot: number): number {
+    const f = this.fuse[slot];
+    return f > 0 && !this.cleared[slot] ? f - this.taps : Infinity;
   }
 
   /** Uncovered, thawed and unlocked. */
@@ -162,6 +196,7 @@ export class Rules {
     const idx = this.partnerIndex(this.kinds[slot]);
     if (idx < 0) {
       this.tray.push(slot);
+      this.checkBombs();
       return TapResult.ToTray;
     }
     const partner = this.tray[idx];
@@ -169,7 +204,20 @@ export class Rules {
     this.lastPartner = partner;
     this.lastPartnerIndex = idx;
     this.onPairCleared(partner, slot);
+    this.checkBombs();
     return TapResult.Cleared;
+  }
+
+  /** A bomb not yet cleared whose fuse has burnt down goes off. */
+  private checkBombs(): void {
+    if (this.exploded >= 0 || !this.bombSlots.length) return;
+    const taps = this.taps;
+    for (const s of this.bombSlots) {
+      if (!this.cleared[s] && taps >= this.fuse[s]) {
+        this.exploded = s;
+        return;
+      }
+    }
   }
 
   private onPairCleared(a: number, b: number): void {
@@ -234,6 +282,6 @@ export class Rules {
   }
 
   get lost(): boolean {
-    return this.tray.length >= this.limit;
+    return this.tray.length >= this.limit || this.exploded >= 0;
   }
 }

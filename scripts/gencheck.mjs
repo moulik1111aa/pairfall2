@@ -31,10 +31,7 @@ const failures = results.flatMap((r) => r.failures);
 const bands = results.flatMap((r) => r.bands).sort((a, b) => a.level - b.level);
 const scored = bands.filter((b) => b.level >= 11);
 const inBand = scored.filter((b) => b.inBand).length;
-const tooHard = bands.filter((b) => {
-  const min = { easy: 0.8, normal: 0.45, hard: 0.15 }[b.band];
-  return b.rate < min - 0.05;
-});
+const tooHard = bands.filter((b) => b.rate < b.min - 0.05);
 
 console.log(`replayed ${replayed}/${SEEDS} seeds; ${failures.length} failures`);
 for (const f of failures.slice(0, 20)) console.log(`  ✗ ${f}`);

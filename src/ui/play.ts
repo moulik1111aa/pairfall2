@@ -18,8 +18,8 @@ import { homeScreen } from './home.ts';
 import { mapScreen } from './map.ts';
 import { reducedMotion } from '../render/tweens.ts';
 import { settingsToggles } from './settings.ts';
-import { TEXT, SPECIALS } from './i18n.ts';
-import { specialPicture, type SpecialKey } from './help.ts';
+import { TEXT, SPECIALS, RULE_INTROS, type Bi } from './i18n.ts';
+import { specialPicture, edgePicture, type SpecialKey } from './help.ts';
 import { prepareTiles, prepareIce } from '../themes/prerender.ts';
 
 declare global {
@@ -27,6 +27,18 @@ declare global {
     __pairfall?: { level: Level; game: Game; tap(slot: number): void; use(id: PowerupId): void };
   }
 }
+
+/** Seconds a Continue adds when the clock has run out. */
+const CONTINUE_SECONDS = 30;
+/** The clock turns red with this many seconds left. */
+const CLOCK_LOW_S = 15;
+
+type IntroKey = SpecialKey | keyof typeof RULE_INTROS;
+
+const clockText = (ms: number) => {
+  const s = Math.ceil(ms / 1000);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
 
 const POWERUPS: { id: PowerupId; label: string }[] = [
   { id: 'undo', label: 'Undo' },
@@ -53,7 +65,7 @@ export function playScreen(m: number | PlayMode) {
     const el = html(`<section class="screen play" aria-label="${name}">
       <header class="hud">
         <button class="icon-btn pause-btn" aria-label="Pause">${ICONS.pause}</button>
-        <div class="hud-title">${title}</div>
+        <div class="hud-title">${title}<span class="clock" hidden>${ICONS.clock}<span class="clock-text"></span></span></div>
         ${zen ? `<button class="icon-btn new-board" aria-label="New board">${ICONS.shuffle}</button>` : coinsBadge(app.save.data.coins)}
       </header>
       <div class="play-area"><div class="loading" style="position:absolute;inset:0;display:grid;place-items:center;color:var(--ink-soft)">Laying out tiles…</div></div>
@@ -67,6 +79,45 @@ export function playScreen(m: number | PlayMode) {
     let destroyed = false;
     let usedSlot = false;
     const rng = createRng((Date.now() ^ 0x5bd1e995) >>> 0);
+
+    // ── Level clock (timed levels) ───────────────────────────────────────────
+    const clockEl = el.querySelector<HTMLElement>('.clock')!;
+    const clockLabel = clockEl.querySelector<HTMLElement>('.clock-text')!;
+    clockEl.setAttribute('role', 'timer');
+    let clockTimer = 0;
+    let clockRunning = false;
+    let lastTick = 0;
+    let warned = false;
+    const updateClock = () => {
+      const g = game;
+      if (!g || !g.timed) return;
+      clockEl.hidden = false;
+      clockLabel.textContent = clockText(g.timeLeftMs);
+      clockEl.setAttribute('aria-label', `${Math.ceil(g.timeLeftMs / 1000)} seconds left`);
+      const low = g.status === 'playing' && g.timeLeftMs <= CLOCK_LOW_S * 1000;
+      clockEl.classList.toggle('low', low);
+      if (!low) warned = false;
+      else if (!warned) {
+        warned = true;
+        app.haptics.heartbeat();
+      }
+    };
+    /** Runs a few times a second; the clock only moves while the board is in play. */
+    const tickClock = () => {
+      const now = performance.now();
+      const dt = Math.min(1000, now - lastTick);
+      lastTick = now;
+      const g = game;
+      const s = stage;
+      if (!g || !s || !clockRunning || sheet || document.visibilityState !== 'visible' || g.status !== 'playing') return;
+      const events = g.tick(dt);
+      updateClock();
+      if (events.length) {
+        s.apply(events);
+        renderBar();
+      }
+    };
+    let boxedToldAt = -Infinity;
 
     const closeSheet = () => {
       sheet?.remove();
@@ -282,12 +333,17 @@ export function playScreen(m: number | PlayMode) {
     };
 
     const showLose = (g: Game) => {
-      const stuck = g.lossReason === 'stuck';
-      const canContinue = !stuck && !zen && !g.continued && app.save.data.coins >= CONFIG.costs.continue;
+      const reason = g.lossReason ?? 'tray';
+      // Continue rescues a full tray (+1 slot) or a clock that ran out (+30 s); not a bomb or a stuck board.
+      const rescuable = reason === 'tray' || reason === 'time';
+      const canContinue = rescuable && !zen && !g.continued && app.save.data.coins >= CONFIG.costs.continue;
       const actions: SheetAction[] = [];
       if (canContinue) {
         actions.push({
-          label: `Continue with +1 slot (${CONFIG.costs.continue} coins)`,
+          label:
+            reason === 'time'
+              ? `Continue with +${CONTINUE_SECONDS} seconds (${CONFIG.costs.continue} coins)`
+              : `Continue with +1 slot (${CONFIG.costs.continue} coins)`,
           run: () => {
             app.save.update((d) => (d.coins -= CONFIG.costs.continue));
             refreshCoins();
@@ -295,8 +351,13 @@ export function playScreen(m: number | PlayMode) {
             g.powerupsUsed++;
             closeSheet();
             stage!.revive();
-            stage!.apply(g.addSlot());
-            stage!.limitChanged();
+            if (reason === 'time') {
+              stage!.apply(g.addTime(CONTINUE_SECONDS * 1000));
+              updateClock();
+            } else {
+              stage!.apply(g.addSlot());
+              stage!.limitChanged();
+            }
             renderBar();
           },
         });
@@ -308,35 +369,46 @@ export function playScreen(m: number | PlayMode) {
         back: true,
         run: () => app.show(mode.kind === 'journey' ? mapScreen : homeScreen),
       });
-      sheet = openSheet(
-        el,
-        stuck
-          ? `<h2>${app.t(TEXT.stuckTitle)}</h2><p>${app.t(TEXT.stuck)}</p>`
-          : `<h2>${app.t(TEXT.trayFullTitle)}</h2><p>${app.t(TEXT.trayFull(g.limit))}</p>`,
-        actions,
-        stuck ? 'No moves left' : 'Tray full',
-      );
+      const why: Record<typeof reason, [Bi, Bi]> = {
+        tray: [TEXT.trayFullTitle, TEXT.trayFull(g.limit)],
+        stuck: [TEXT.stuckTitle, TEXT.stuck],
+        bomb: [TEXT.bombTitle, TEXT.bombLost],
+        time: [TEXT.timeUpTitle, TEXT.timeUp],
+      };
+      const [head, body] = why[reason];
+      sheet = openSheet(el, `<h2>${app.t(head)}</h2><p>${app.t(body)}</p>`, actions, head.en);
     };
 
     // ── Special-tile introductions ───────────────────────────────────────────
-    const pendingIntros = (level: Level): SpecialKey[] => {
+    const pendingIntros = (level: Level, timed: boolean): IntroKey[] => {
       const sp = level.specials ?? {};
-      const has: Record<string, boolean> = {
+      const has: Record<IntroKey, boolean> = {
+        // the edge rule: explained once, after the very first tutorial level
+        edges: !(mode.kind === 'journey' && n === 1),
+        timer: timed,
         mystery: !!sp.mystery?.length,
         frozen: !!Object.keys(sp.frozen ?? {}).length,
         locks: !!sp.locks?.length,
         wild: level.kinds.includes(WILD),
+        bombs: !!Object.keys(sp.bombs ?? {}).length,
       };
-      return (Object.keys(SPECIALS) as SpecialKey[]).filter((k) => has[k] && !app.save.data.seenIntro.includes(k));
+      const order: IntroKey[] = ['edges', 'timer', ...(Object.keys(SPECIALS) as SpecialKey[])];
+      return order.filter((k) => has[k] && !app.save.data.seenIntro.includes(k));
     };
 
-    const showIntros = (keys: SpecialKey[], done: () => void) => {
+    const showIntros = (keys: IntroKey[], done: () => void) => {
       const key = keys[0];
       if (!key) return done();
-      const picture = specialPicture(app, key);
+      const card = key === 'edges' || key === 'timer' ? RULE_INTROS[key] : SPECIALS[key];
+      const picture =
+        key === 'edges'
+          ? edgePicture(app)
+          : key === 'timer'
+            ? `<div class="intro-pic"><div class="help-pic-icon">${ICONS.clock}</div></div>`
+            : specialPicture(app, key);
       sheet = openSheet(
         el,
-        `${picture}<h2>${app.t(SPECIALS[key].title)}</h2><p>${app.t(SPECIALS[key].text)}</p>`,
+        `${picture}<h2>${app.t(card.title)}</h2><p>${app.t(card.text)}</p>`,
         [
           {
             label: 'Got it',
@@ -348,7 +420,7 @@ export function playScreen(m: number | PlayMode) {
             },
           },
         ],
-        SPECIALS[key].title.en,
+        card.title.en,
       );
     };
 
@@ -362,6 +434,8 @@ export function playScreen(m: number | PlayMode) {
         area.querySelector('.loading')?.remove();
         const g = new Game(zen ? { ...level, limit: Infinity } : level);
         game = g;
+        const timeLimit = mode.kind === 'journey' ? level.settings.timeLimit : undefined;
+        if (timeLimit) g.timeLimitMs = timeLimit * 1000;
         app.save.update((d) => d.stats.played++);
         const onTap = (slot: number) => {
           if (!g.canTap(slot)) return;
@@ -390,6 +464,12 @@ export function playScreen(m: number | PlayMode) {
             topReserve: level.settings.tutorial && mode.kind === 'journey' ? (app.hindi ? 128 : 72) : 0,
             numbers,
             mystery: level.specials?.mystery,
+            onBoxedIn() {
+              const now = performance.now();
+              if (now - boxedToldAt < 6000) return;
+              boxedToldAt = now;
+              app.toast(TEXT.boxedIn, 2600);
+            },
             onEnd(result) {
               tutorial?.destroy();
               renderBar();
@@ -401,9 +481,16 @@ export function playScreen(m: number | PlayMode) {
           renderBar();
           if (level.settings.tutorial && mode.kind === 'journey') tutorial = new Tutorial(area, n, g, stage, app.hindi);
           if (mode.kind === 'journey') prefetch(n + 1);
+          if (g.timed) {
+            updateClock();
+            lastTick = performance.now();
+            clockTimer = window.setInterval(tickClock, 200);
+            // the clock starts once the tiles have finished dropping in
+            window.setTimeout(() => (clockRunning = true), reducedMotion() ? 0 : 900);
+          }
           if (app.debug) window.__pairfall = { level, game: g, tap: onTap, use: usePowerup };
         };
-        const intros = pendingIntros(level);
+        const intros = pendingIntros(level, g.timed);
         if (intros.length) showIntros(intros, start);
         else start();
       },
@@ -426,6 +513,7 @@ export function playScreen(m: number | PlayMode) {
       },
       destroy() {
         destroyed = true;
+        clearInterval(clockTimer);
         app.sound.danger(false);
         tutorial?.destroy();
         stage?.destroy();

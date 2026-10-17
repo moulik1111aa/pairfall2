@@ -129,3 +129,19 @@
 .sheet p .hi{font-size:18px;line-height:1.6;margin-top:.45em}
 .coach>span{font-size:17px}
 .toast{font-size:16px}
+/* The edge rule, pictured: a 3 × 3 block with the boxed-in centre dimmed */
+.edge-pic{position:relative;display:grid;grid-template-columns:repeat(3,52px);grid-auto-rows:52.8px;width:max-content;margin:2px auto 22px}
+.edge-pic .tile{position:relative;width:52px;height:62.4px}
+.edge-pic .help-finger{right:-22px;bottom:-16px;width:44px;height:44px;z-index:2}
+.intro-pic{display:grid;place-items:center;margin:4px auto 10px}
+.intro-pic .help-pic-icon{width:72px;height:72px}
+/* Journey map: jump ahead */
+.jump-fab{position:absolute;right:16px;bottom:calc(var(--safe-bottom) + 18px);z-index:10;gap:8px}
+.jump-fab svg{width:22px;height:22px}
+.jump-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:4px 0 16px}
+.jump-grid .btn{min-height:56px;padding:0;font-size:20px;font-variant-numeric:tabular-nums}
+.jump-grid .btn.here{background:var(--accent);color:var(--accent-ink)}
+.jump-own{display:flex;gap:10px;margin-bottom:6px}
+.jump-own input{flex:1;min-width:0;min-height:56px;border-radius:16px;border:2px solid var(--tray-edge);background:var(--bg);color:var(--ink);
+  font:700 22px var(--font-ui);text-align:center}
+.jump-own .btn{min-height:56px}

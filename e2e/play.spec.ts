@@ -60,6 +60,7 @@ test('first launch: play level 1 to a win, progress is saved', async ({ page }) 
 
 test('filling the tray loses, danger shows one slot before', async ({ page }) => {
   await freshStart(page, '/?debug&level=11');
+  await dismissIntros(page);
   await page.waitForFunction(() => !!window.__pairfall);
   const picks = await page.evaluate(() => {
     const g = window.__pairfall!.game;
@@ -101,6 +102,9 @@ test('blocked tiles ignore taps; pause sheet resumes', async ({ page }) => {
 
 test('new special tiles are introduced once', async ({ page }) => {
   await freshStart(page, '/?debug&level=36');
+  // the edge rule is explained first, once, then each new tile
+  await expect(page.getByRole('dialog', { name: 'Only edge tiles' })).toBeVisible();
+  await page.getByRole('button', { name: 'Got it' }).click();
   await expect(page.getByRole('dialog', { name: 'Face-down tiles' })).toBeVisible();
   await dismissIntros(page);
   await page.goto('/?debug&level=36');
@@ -134,6 +138,7 @@ test('power-ups: hint glows a tile, undo takes a tile back, shuffle keeps the bo
 
 test('lose then continue with an extra slot', async ({ page }) => {
   await freshStart(page, '/?debug&level=11');
+  await dismissIntros(page);
   await page.waitForFunction(() => !!window.__pairfall);
   const picks = await page.evaluate(() => {
     const g = window.__pairfall!.game;
@@ -180,7 +185,7 @@ test('How to play: one big card at a time, English with Hindi, Back / Next and s
   const card = page.locator('.help-card-big');
   await expect(card.locator('h2 .en')).toHaveText('Tap a tile');
   await expect(card.locator('h2 .hi')).toHaveText('टाइल पर टैप करें');
-  await expect(page.locator('.help-count')).toHaveText('1 of 18');
+  await expect(page.locator('.help-count')).toHaveText('1 of 21');
   await expect(page.locator('.help-prev')).toBeDisabled();
   // Large type for easy reading.
   expect(parseFloat(await card.locator('p .en').evaluate((e) => getComputedStyle(e.parentElement!).fontSize))).toBeGreaterThanOrEqual(19);
@@ -196,7 +201,7 @@ test('How to play: one big card at a time, English with Hindi, Back / Next and s
   await page.locator('.help-next').click();
   await expect(card.locator('h2 .hi')).toHaveText('जमी हुई टाइलें');
   await expect(card.locator('.help-note')).toContainText('From level 20');
-  for (let i = 0; i < 18; i++) {
+  for (let i = 0; i < 21; i++) {
     expect(await card.evaluate((e) => e.scrollHeight <= e.clientHeight + 1)).toBe(true);
     if (await page.locator('.help-next .en').textContent() === 'Done') break;
     await page.locator('.help-next').click();
@@ -225,7 +230,7 @@ test('special-tile introduction explains frozen tiles in both languages', async 
     const app = (window as unknown as { __app: { save: { update(fn: (d: { level: number; seenIntro: string[] }) => void): void } } }).__app;
     app.save.update((d) => {
       d.level = 20;
-      d.seenIntro = ['mystery'];
+      d.seenIntro = ['edges', 'mystery'];
     });
   });
   await page.goto('/?debug&level=20');

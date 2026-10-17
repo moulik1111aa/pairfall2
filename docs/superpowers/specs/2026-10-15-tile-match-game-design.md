@@ -260,3 +260,12 @@ android/         Capacitor Android project (generated in CI)
 ## 12. Out of scope
 
 Ads, in-app purchases, accounts, cloud save, online leaderboards, a Play Store listing, iOS, and tablet layouts.
+
+## 13. Tougher play (added 2026-10-17, user request)
+
+- **Edge rule.** A tile is free only when nothing on a higher layer covers it *and* at least one of its four sides (left, right, above, below) has no neighbour on its own layer. Tiles boxed in on all sides are dimmed; tapping one shakes it and shows "Boxed in: clear a tile beside it first". Explained once on a card ("Only edge tiles"), in the tutorial's level-2 line and in How to play.
+- **Bomb tiles (from level 45).** A countdown badge drops by one with every tap (Undo gives it back). The bomb must be cleared before it reaches 0, or the level is lost ("Boom!"); Continue cannot rescue this. The generator puts bombs on pairs the built-in solution clears in its first half, with the fuse = taps that solution needs plus slack (14 taps early, 4 by level 400). One bomb at first, up to three (four on bosses); breathers get one from level 100.
+- **Timed levels.** Boss levels from 60 and every Normal level from 150 have a clock: 15 s plus 3.2 s a tile at level 60, tightening to 2.0 s by 400 (Normal: 3.6 → 2.4 s). It only runs while the board is in play; red and a heartbeat in the last 15 s. Continue after time runs out adds 30 s (80 coins).
+- **Endless ramp.** "Late game" runs from level 60 to 400: the accepted bot win range slides down (Normal 45–75% → 15–45%, Hard 15–45% → 3–20%, breathers 80% → 60% minimum), special tiles rise from 15% to 30% of the board, thaw counts reach 4 from level 200, more frozen tiles and locks, more face-down tiles.
+- **Calibration under the edge rule.** Normal boards use at most 13 designs (18 left too few matches in reach) and no plain rectangles after the tutorial. Generator version 3. 99.7% of levels 11–300 land in range.
+- **Jump ahead.** The Journey map has a Jump button: quick picks 50, 100, 150, 200, 250, 300, 400, 500, or any number up to 9999. Every level up to the one chosen opens on the map.

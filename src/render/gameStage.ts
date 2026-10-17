@@ -21,6 +21,9 @@ export const FLY_MS = 260;
 export const POP_MS = 300;
 
 const LOCK_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7.5a5 5 0 0 1 10 0V10" fill="none" stroke="#26324A" stroke-width="2.6"/><rect x="4" y="10" width="16" height="12" rx="3" fill="#F2B33D" stroke="#26324A" stroke-width="1.8"/><circle cx="12" cy="15" r="1.8" fill="#26324A"/><path d="M12 16v3" stroke="#26324A" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+const BOMB_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="14" r="7.5" fill="#2B2F3A" stroke="#26324A" stroke-width="1.2"/><circle cx="8" cy="11.5" r="2" fill="#fff" opacity=".35"/><path d="M14.5 7.5l2-2" stroke="#26324A" stroke-width="2.4" stroke-linecap="round"/><path d="M17 5c1-1.5 2.4-1.6 3.4-.6" fill="none" stroke="#C9772C" stroke-width="1.6" stroke-linecap="round"/><circle cx="20.6" cy="4.2" r="1.7" fill="#FFB23F"/></svg>`;
+/** A bomb pulses once this few taps (or fewer) are left on its fuse. */
+const BOMB_HOT = 3;
 const KEY_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4.5" fill="#F2B33D" stroke="#26324A" stroke-width="1.8"/><circle cx="8" cy="12" r="1.6" fill="#26324A"/><path d="M12.5 12H21M17 12v3M20 12v2.5" fill="none" stroke="#26324A" stroke-width="2" stroke-linecap="round"/></svg>`;
 
 export interface StageCallbacks {
@@ -38,6 +41,8 @@ export interface StageCallbacks {
   numbers?: boolean;
   /** Tiles that start face-down. */
   mystery?: readonly number[];
+  /** A tap on a tile that is uncovered but boxed in on every side. */
+  onBoxedIn?(slot: number): void;
 }
 
 interface Layout {
@@ -120,9 +125,11 @@ export class GameStage {
     const kind = this.game.kinds[slot];
     const name = kind === WILD ? 'Wild tile' : this.theme.tiles[kind % this.theme.tiles.length].name;
     const frost = this.game.frostOf(slot);
-    if (frost > 0) return `${name}, frozen (${frost})`;
-    if (this.game.isLocked(slot)) return `${name}, locked`;
-    return name;
+    const fuse = this.game.fuseLeft(slot);
+    const bomb = Number.isFinite(fuse) ? `, bomb (${fuse} taps left)` : '';
+    if (frost > 0) return `${name}, frozen (${frost})${bomb}`;
+    if (this.game.isLocked(slot)) return `${name}, locked${bomb}`;
+    return name + bomb;
   }
 
   private paintFace(slot: number): void {
@@ -145,6 +152,39 @@ export class GameStage {
       el.insertAdjacentHTML('beforeend', `<div class="padlock" aria-hidden="true">${LOCK_SVG}</div>`);
     }
     if (r.keyOf[slot] >= 0) el.insertAdjacentHTML('beforeend', `<div class="keybadge" aria-hidden="true">${KEY_SVG}</div>`);
+    if (r.fuse[slot] > 0) {
+      el.classList.add('has-bomb');
+      el.insertAdjacentHTML('beforeend', `<div class="bomb" aria-hidden="true">${BOMB_SVG}<b>${this.game.fuseLeft(slot)}</b></div>`);
+    }
+  }
+
+  /** Bring every bomb's countdown up to date (after taps and undos). */
+  private refreshBombs(): void {
+    for (const s of this.game.rules.bombSlots) {
+      const el = this.tileEls[s];
+      const left = this.game.fuseLeft(s);
+      if (!Number.isFinite(left) || !el.isConnected) continue;
+      const b = el.querySelector('.bomb b');
+      if (b && b.textContent !== String(left)) {
+        b.textContent = String(Math.max(0, left));
+        el.setAttribute('aria-label', this.label(s));
+        if (!reducedMotion()) b.animate([{ scale: '1.35' }, { scale: '1' }], { duration: 220, easing: 'ease-out' });
+      }
+      el.classList.toggle('bomb-hot', left <= BOMB_HOT);
+    }
+  }
+
+  private explode(slot: number): void {
+    const el = this.tileEls[slot];
+    el.classList.add('bad');
+    const r = el.getBoundingClientRect();
+    const host = this.el.getBoundingClientRect();
+    const x = r.left - host.left + r.width / 2;
+    const y = r.top - host.top + r.height / 2;
+    flash(el, 300);
+    this.particles.ring(x, y, this.layoutState.tileW * 2.2, '#FF7A2F', 0.9);
+    this.particles.burst(x, y, 3, { colors: ['#FFB23F', '#FF7A2F', '#E2483D', '#2B2F3A'], shape: 'spark', count: 46, gravity: 420 });
+    shake(this.el, 14, 520);
   }
 
   /** Flip a tile over to a new face (mystery reveal, shuffle, wild). */
@@ -300,6 +340,8 @@ export class GameStage {
     if (!this.game.canTap(slot)) {
       if (this.game.board.isPresent(slot)) {
         shake(t, 3, 220);
+        const b = this.game.board;
+        if (b.isUncovered(slot) && !b.hasOpenSide(slot)) this.cb.onBoxedIn?.(slot);
         if (this.game.board.isFree(slot)) {
           // uncovered but frozen or locked: draw attention to what holds it
           const badge = t.querySelector<HTMLElement>('.ice, .padlock');
@@ -317,6 +359,11 @@ export class GameStage {
 
   /** Apply the events returned by the game. */
   apply(events: GameEvent[]): void {
+    this.applyEvents(events);
+    if (this.game.rules.bombSlots.length) this.refreshBombs();
+  }
+
+  private applyEvents(events: GameEvent[]): void {
     for (const ev of events) {
       switch (ev.type) {
         case 'tileToTray': {
@@ -396,6 +443,11 @@ export class GameStage {
         case 'dangerEnd':
           this.trayEl.classList.remove('danger');
           this.fb.danger(false);
+          break;
+        case 'exploded':
+          this.explode(ev.slot);
+          break;
+        case 'timeUp':
           break;
         case 'lose':
           void this.lose();

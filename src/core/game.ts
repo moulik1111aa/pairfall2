@@ -26,6 +26,8 @@ export type GameEvent =
   | { type: 'unlocked'; slots: number[] }
   | { type: 'shuffled'; slots: number[] }
   | { type: 'wildified'; slot: number }
+  | { type: 'exploded'; slot: number }
+  | { type: 'timeUp' }
   | { type: 'danger' }
   | { type: 'dangerEnd' }
   | { type: 'undone'; slot: number; kind: number }
@@ -49,8 +51,15 @@ export class Game {
   powerupsUsed = 0;
   /** Set once Continue has been used this attempt. */
   continued = false;
-  /** Why the game was lost: the tray filled, or no tile can be tapped any more. */
-  lossReason: 'tray' | 'stuck' | null = null;
+  /**
+   * Why the game was lost: the tray filled, no tile can be tapped any more, a bomb
+   * went off, or the clock ran out.
+   */
+  lossReason: 'tray' | 'stuck' | 'bomb' | 'time' | null = null;
+  /** Time allowed for the level (Infinity = untimed). */
+  timeLimitMs = Infinity;
+  /** Playing time used so far; advanced by tick() while the board is in play. */
+  elapsedMs = 0;
   private lastClearAt = -Infinity;
   private inDanger = false;
   private readonly history: HistoryEntry[] = [];
@@ -92,6 +101,42 @@ export class Game {
     return this.rules.frost[slot];
   }
 
+  /** Taps left before the bomb on `slot` goes off (Infinity if it is not a live bomb). */
+  fuseLeft(slot: number): number {
+    return this.rules.fuseLeft(slot);
+  }
+
+  get timed(): boolean {
+    return Number.isFinite(this.timeLimitMs);
+  }
+
+  get timeLeftMs(): number {
+    return Math.max(0, this.timeLimitMs - this.elapsedMs);
+  }
+
+  /** Advance the level clock. Returns the losing events if time runs out. */
+  tick(dtMs: number): GameEvent[] {
+    if (this.status !== 'playing' || !this.timed) return [];
+    this.elapsedMs += dtMs;
+    if (this.elapsedMs < this.timeLimitMs) return [];
+    this.elapsedMs = this.timeLimitMs;
+    this.status = 'lost';
+    this.lossReason = 'time';
+    return [{ type: 'timeUp' }, { type: 'lose' }];
+  }
+
+  /** More time on the clock (Continue after time ran out). Revives a game lost on time. */
+  addTime(ms: number): GameEvent[] {
+    this.timeLimitMs += ms;
+    if (this.status === 'lost' && this.lossReason === 'time') {
+      this.status = 'playing';
+      this.lossReason = null;
+    }
+    const events: GameEvent[] = [];
+    this.updateDanger(events);
+    return events;
+  }
+
   tap(slot: number): GameEvent[] {
     if (!this.canTap(slot)) return [];
     const r = this.rules;
@@ -123,7 +168,10 @@ export class Game {
 
     if (r.lost) {
       this.status = 'lost';
-      this.lossReason = 'tray';
+      if (r.exploded >= 0) {
+        this.lossReason = 'bomb';
+        events.push({ type: 'exploded', slot: r.exploded });
+      } else this.lossReason = 'tray';
       events.push({ type: 'lose' });
       return events;
     }

@@ -65,6 +65,11 @@ test('tile numbers and left-handed layout apply in game', async ({ page }) => {
   await page.getByText('Tile numbers', { exact: true }).click();
   await page.getByText('Left-handed', { exact: true }).click();
   await page.goto('/?debug&level=5');
+  for (let i = 0; i < 20 && !(await page.locator('.stage .tile').count()); i++) {
+    const b = page.getByRole('button', { name: 'Got it' });
+    if (await b.count()) await b.click();
+    else await page.waitForTimeout(150);
+  }
   await page.waitForSelector('.stage .tile');
   await expect(page.locator('.powerbar')).toHaveClass(/left-handed/);
   const numbered = await page.evaluate(async () => {

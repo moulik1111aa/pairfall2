@@ -17,9 +17,12 @@ export interface SpecialQuota {
   readonly locks: number;
   /** How many wild tiles. */
   readonly wild: number;
+  /** How many bomb tiles, and how many spare taps each fuse allows beyond the built-in solution. */
+  readonly bombs?: number;
+  readonly fuseSlack?: number;
 }
 
-export const NO_SPECIALS: SpecialQuota = { mystery: 0, frozen: 0, thaw: 2, locks: 0, wild: 0 };
+export const NO_SPECIALS: SpecialQuota = { mystery: 0, frozen: 0, thaw: 2, locks: 0, wild: 0, bombs: 0, fuseSlack: 0 };
 
 interface Trace {
   takeStep: Int32Array;
@@ -81,7 +84,8 @@ export function placeSpecials(
   rng: Rng,
 ): { kinds: number[]; specials: Specials } {
   const base: LevelData = { slots, kinds, limit };
-  if (!quota.mystery && !quota.frozen && !quota.locks && !quota.wild) return { kinds: [...kinds], specials: {} };
+  const bombQuota = quota.bombs ?? 0;
+  if (!quota.mystery && !quota.frozen && !quota.locks && !quota.wild && !bombQuota) return { kinds: [...kinds], specials: {} };
   const n = slots.length;
   const tr = trace({ ...base, slots }, solution);
   const used = new Uint8Array(n);
@@ -126,11 +130,31 @@ export function placeSpecials(
     wilds++;
   }
 
+  // Bombs: a pair the solution clears in its first half. The fuse allows the taps
+  // the solution needs to clear it, plus a little slack — so the player must go
+  // after that pair early instead of leaving it for last.
+  const bombs: Record<number, number> = {};
+  const isMystery = new Set(mystery);
+  const bombPairs = rng.shuffle(
+    tr.pairs.filter(([a, b, step]) => step >= 3 && step < n * 0.5 && !used[a] && !used[b] && !isMystery.has(a) && !isMystery.has(b)),
+  );
+  let placedBombs = 0;
+  for (const [a, b, step] of bombPairs) {
+    if (placedBombs >= bombQuota) break;
+    if (used[a] || used[b]) continue;
+    // the bomb goes on whichever tile of the pair the player can see first
+    const slot = tr.freeAtStart[a] || !tr.freeAtStart[b] ? a : b;
+    bombs[slot] = step + 1 + (quota.fuseSlack ?? 0);
+    used[a] = used[b] = 1;
+    placedBombs++;
+  }
+
   // Verify under the full rules; drop the riskiest specials if anything slipped through.
   const attempts: { kinds: number[]; specials: Specials }[] = [
-    { kinds: next, specials: { mystery, frozen, locks } },
-    { kinds: [...kinds], specials: { mystery, frozen, locks } },
-    { kinds: [...kinds], specials: { mystery, frozen } },
+    { kinds: next, specials: { mystery, frozen, locks, bombs } },
+    { kinds: [...kinds], specials: { mystery, frozen, locks, bombs } },
+    { kinds: [...kinds], specials: { mystery, frozen, bombs } },
+    { kinds: [...kinds], specials: { mystery, bombs } },
     { kinds: [...kinds], specials: { mystery } },
   ];
   for (const a of attempts) {

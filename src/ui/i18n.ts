@@ -32,8 +32,8 @@ export const TEXT = {
     hi: `ट्रे भरने से पहले जोड़ियाँ साफ़ करें — ${limit} बेमेल टाइलें होते ही खेल ख़त्म`,
   }),
   tutorialCovered: {
-    en: 'Dimmed tiles are covered. Clear the tiles on top to free them',
-    hi: 'धुंधली टाइलें ढकी हुई हैं। ऊपर वाली टाइलें हटाएँ, तब ये खुलेंगी',
+    en: 'Dimmed tiles are covered or boxed in. Clear a tile on top or beside them to free them',
+    hi: 'धुंधली टाइलें ढकी हुई हैं या चारों ओर से घिरी हैं। ऊपर या बगल की टाइल हटाएँ, तब ये खुलेंगी',
   },
   tutorialPlan: {
     en: 'Plan ahead: start a new pair only when its twin is in reach',
@@ -46,6 +46,25 @@ export const TEXT = {
     en: `${limit} tiles were waiting for their twins. Try finishing a pair before starting a new one.`,
     hi: `${limit} टाइलें अपनी जोड़ीदार का इंतज़ार कर रही थीं। नई जोड़ी शुरू करने से पहले पिछली पूरी करने की कोशिश करें।`,
   }),
+  bombTitle: { en: 'Boom!', hi: 'धमाका!' },
+  bombLost: {
+    en: 'A bomb’s countdown reached zero. Go after bomb tiles early and match them before their number runs out.',
+    hi: 'बम की गिनती शून्य हो गई। बम वाली टाइलों तक जल्दी पहुँचें और उनकी गिनती ख़त्म होने से पहले उनकी जोड़ी बनाएँ।',
+  },
+  timeUpTitle: { en: 'Time’s up', hi: 'समय ख़त्म' },
+  timeUp: {
+    en: 'The clock ran out before the board was cleared. Keep pairs moving: finish one before starting the next.',
+    hi: 'बोर्ड साफ़ होने से पहले घड़ी का समय ख़त्म हो गया। जोड़ियाँ बनाते चलें: नई शुरू करने से पहले पिछली पूरी करें।',
+  },
+  boxedIn: {
+    en: 'Boxed in: clear a tile beside it first',
+    hi: 'यह टाइल चारों ओर से घिरी है — पहले इसके बगल की कोई टाइल हटाएँ',
+  },
+  jumpTitle: { en: 'Jump to a level', hi: 'किसी लेवल पर जाएँ' },
+  jumpNote: {
+    en: 'Pick a level to play now. Levels you skip stay open, so you can come back to them any time.',
+    hi: 'अभी खेलने के लिए कोई लेवल चुनें। छोड़े गए लेवल खुले रहेंगे, आप कभी भी उन पर लौट सकते हैं।',
+  },
   stuckTitle: { en: 'No moves left', hi: 'कोई चाल नहीं बची' },
   stuck: {
     en: 'Every tile that is left is frozen or locked, and nothing can free it. Clear pairs near frozen tiles earlier next time.',
@@ -83,8 +102,26 @@ export const TEXT = {
   },
 } as const;
 
+/** One-time cards for rules that apply to whole levels. */
+export const RULE_INTROS: Record<'edges' | 'timer', { title: Bi; text: Bi }> = {
+  edges: {
+    title: { en: 'Only edge tiles', hi: 'सिर्फ़ किनारे की टाइलें' },
+    text: {
+      en: 'You can tap a tile only when nothing is on top of it and at least one of its sides is open. A tile boxed in by neighbours stays dim until one of them is cleared.',
+      hi: 'टाइल पर तभी टैप होगा जब उसके ऊपर कुछ न हो और उसकी कम से कम एक तरफ़ खाली हो। चारों ओर से घिरी टाइल तब तक धुंधली रहेगी, जब तक बगल की कोई टाइल साफ़ न हो।',
+    },
+  },
+  timer: {
+    title: { en: 'Timed level', hi: 'समय वाला लेवल' },
+    text: {
+      en: 'Clear the board before the clock at the top runs out. The clock stops while the game is paused.',
+      hi: 'ऊपर की घड़ी का समय ख़त्म होने से पहले बोर्ड साफ़ करें। खेल रुका हो तो घड़ी भी रुकी रहती है।',
+    },
+  },
+};
+
 /** Special tiles: shown as an introduction card the first time each appears, and in How to play. */
-export const SPECIALS: Record<'mystery' | 'frozen' | 'locks' | 'wild', { title: Bi; text: Bi }> = {
+export const SPECIALS: Record<'mystery' | 'frozen' | 'locks' | 'wild' | 'bombs', { title: Bi; text: Bi }> = {
   mystery: {
     title: { en: 'Face-down tiles', hi: 'उलटी टाइलें' },
     text: {
@@ -113,6 +150,13 @@ export const SPECIALS: Record<'mystery' | 'frozen' | 'locks' | 'wild', { title: 
       hi: 'सुनहरा घेरा किसी भी टाइल से जोड़ी बना लेता है। अगर इससे कोई टाइल बिना जोड़ीदार के रह जाए, तो वाइल्ड उस टाइल में चला जाता है।',
     },
   },
+  bombs: {
+    title: { en: 'Bomb tiles', hi: 'बम टाइलें' },
+    text: {
+      en: 'The number drops by one with every tap. Match the bomb before it reaches zero, or the level is lost.',
+      hi: 'हर टैप के साथ अंक एक कम होता है। अंक शून्य होने से पहले बम की जोड़ी बना लें, वरना लेवल हार जाएँगे।',
+    },
+  },
 };
 
 /** How to play, one idea per card: the basics. */
@@ -120,8 +164,8 @@ export const RULES: { title: Bi; text: Bi }[] = [
   {
     title: { en: 'Tap a tile', hi: 'टाइल पर टैप करें' },
     text: {
-      en: 'Tap a free tile to send it to the tray. A tile is free when nothing covers it.',
-      hi: 'किसी खुली टाइल पर टैप करें, वह ट्रे में चली जाएगी। जिस टाइल के ऊपर कुछ न हो, वही खुली है।',
+      en: 'Tap a free tile to send it to the tray. A tile is free when nothing covers it and it is on an edge, with at least one side open.',
+      hi: 'किसी खुली टाइल पर टैप करें, वह ट्रे में चली जाएगी। खुली टाइल वह है जिसके ऊपर कुछ न हो और जो किनारे पर हो, यानी कम से कम एक तरफ़ खाली हो।',
     },
   },
   {
@@ -133,6 +177,13 @@ export const RULES: { title: Bi; text: Bi }[] = [
     text: {
       en: `Unmatched tiles wait in the tray. When ${normal} are waiting (${early} in levels 1–${earlyUntilLevel}), the level is lost.`,
       hi: `बेमेल टाइलें ट्रे में इंतज़ार करती हैं। ${normal} टाइलें (लेवल 1–${earlyUntilLevel} में ${early}) इकट्ठा होते ही लेवल हार जाते हैं।`,
+    },
+  },
+  {
+    title: { en: 'Timed levels', hi: 'समय वाले लेवल' },
+    text: {
+      en: 'From level 60, boss levels have a clock, and from level 150 most levels do. Clear the board before it runs out.',
+      hi: 'लेवल 60 से बॉस लेवल में घड़ी चलती है, और लेवल 150 से ज़्यादातर लेवल में। समय ख़त्म होने से पहले बोर्ड साफ़ करें।',
     },
   },
   {
@@ -189,6 +240,13 @@ export const MODES: { title: Bi; text: Bi }[] = [
     text: {
       en: `A new board every day. Clear it for ${CONFIG.rewards.daily} coins and keep your streak going.`,
       hi: `हर दिन एक नया बोर्ड। इसे साफ़ करें, ${CONFIG.rewards.daily} सिक्के पाएँ और रोज़ जीतने का सिलसिला बनाए रखें।`,
+    },
+  },
+  {
+    title: { en: 'Jump ahead', hi: 'आगे के लेवल पर जाएँ' },
+    text: {
+      en: 'On the Journey map, Jump takes you straight to level 100, 150, 200 or any level you type. Skipped levels stay open to play later.',
+      hi: 'Journey मैप पर Jump दबाकर सीधे लेवल 100, 150, 200 या अपनी पसंद के किसी भी लेवल पर जाएँ। छोड़े गए लेवल बाद में भी खेले जा सकते हैं।',
     },
   },
   {

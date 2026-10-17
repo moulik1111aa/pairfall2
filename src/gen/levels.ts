@@ -6,7 +6,7 @@ import { winRate } from './bot.ts';
 import { BANDS, settingsFor, type Band, type LevelSettings } from './curve.ts';
 
 /** Bump when generation changes in a way that alters layouts. */
-export const GENERATOR_VERSION = 2;
+export const GENERATOR_VERSION = 3;
 export const MAX_ATTEMPTS = 50;
 export const BOT_PLAYS = 300;
 
@@ -31,7 +31,7 @@ export interface MakeOptions {
 
 export function makeLevelFrom(id: string, settings: LevelSettings, options: MakeOptions = {}): Level {
   const seed = subSeed(hashString(`${id}#v${GENERATOR_VERSION}`), 0);
-  const band = BANDS[settings.band];
+  const band = settings.range ?? BANDS[settings.band];
   let best: { level: GeneratedLevel; rate: number; attempt: number } | null = null;
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     let level: GeneratedLevel;
@@ -62,7 +62,7 @@ export type PlayMode = { kind: 'journey'; n: number } | { kind: 'daily'; date: s
 
 /** Daily challenge settings: Normal difficulty with the level 25 mix (spec §6). */
 export function dailySettings(): LevelSettings {
-  return { ...settingsFor(25), band: 'normal', tutorial: false };
+  return { ...settingsFor(25), band: 'normal', range: BANDS.normal, tutorial: false };
 }
 
 /**
@@ -70,7 +70,7 @@ export function dailySettings(): LevelSettings {
  * itself runs with no tray limit at all.
  */
 export function zenSettings(): LevelSettings {
-  return { ...settingsFor(20), band: 'easy', tutorial: false, limit: 7, targetPeak: 3 };
+  return { ...settingsFor(20), band: 'easy', range: BANDS.easy, tutorial: false, limit: 7, targetPeak: 3, timeLimit: undefined };
 }
 
 export function makeLevel(mode: PlayMode): Level {

@@ -1,7 +1,7 @@
 // Worker for scripts/gencheck.mjs: checks a range of seeds and reports failures.
 import { parentPort, workerData } from 'node:worker_threads';
 import { generate, MAX_PAIRS_PER_KIND } from '../src/gen/generator.ts';
-import { settingsFor, BANDS } from '../src/gen/curve.ts';
+import { settingsFor } from '../src/gen/curve.ts';
 import { makeJourneyLevel } from '../src/gen/levels.ts';
 import { Game, WILD } from '../src/core/game.ts';
 
@@ -49,11 +49,11 @@ for (let seed = from; seed < to; seed++) {
 }
 
 // 3. Difficulty bands for real Journey levels.
-const bands: { level: number; band: string; rate: number; inBand: boolean }[] = [];
+const bands: { level: number; band: string; rate: number; min: number; inBand: boolean }[] = [];
 for (const n of bandLevels) {
   const L = makeJourneyLevel(n);
-  const b = BANDS[L.settings.band];
-  bands.push({ level: n, band: L.settings.band, rate: L.winRate, inBand: L.winRate >= b.min && L.winRate <= b.max });
+  const b = L.settings.range;
+  bands.push({ level: n, band: L.settings.band, rate: L.winRate, min: b.min, inBand: L.winRate >= b.min && L.winRate <= b.max });
 }
 
 parentPort!.postMessage({ replayed, failures, bands });
