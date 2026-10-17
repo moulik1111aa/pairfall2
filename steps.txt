@@ -1,0 +1,29 @@
+[smoke] device: sdk_gphone64_x86_64, Android 15, Physical size: 1080x2400
+Performing Streamed Install
+Success
+Starting: Intent { cmp=com.pairfall.game/.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: com.pairfall.game/.MainActivity
+TotalTime: 3352
+WaitTime: 3379
+Complete
+[smoke] home screen is up
+        InsetsFrameProvider: {id=#1ff00000, index=0, type=statusBars, source=FRAME, flags=[], insetsSize=Insets{left=0, top=63, right=0, bottom=0}}
+            InsetsFrameProvider: {id=#1ff00000, index=0, type=statusBars, source=FRAME, flags=[], insetsSize=Insets{left=0, top=136, right=0, bottom=0}}
+            InsetsFrameProvider: {id=#1ff00000, index=0, type=statusBars, source=FRAME, flags=[], insetsSize=Insets{left=0, top=74, right=0, bottom=0}}
+            InsetsFrameProvider: {id=#1ff00000, index=0, type=statusBars, source=FRAME, flags=[], insetsSize=Insets{left=0, top=74, right=0, bottom=0}}
+            InsetsFrameProvider: {id=#1ff00000, index=0, type=statusBars, source=FRAME, flags=[], insetsSize=Insets{left=0, top=74, right=0, bottom=0}}
+[smoke] tapped "Start playing" at 540 1419
+[smoke] level 1 coach shown
+[smoke] Hindi coach line shown
+[smoke] tile "Koi" moved to the tray
+[smoke] back paused the game
+[smoke] back resumed
+[smoke] tapped "Home" at 542 2196
+[smoke] tapped "How to play" at 256 245
+[smoke] How to play opened
+[smoke] tapped "Next" at 834 2246
+[smoke] after second back:   mCurrentFocus=Window{1e12ebd u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+[smoke] process alive after relaunch
+[smoke] all smoke checks passed

@@ -1,0 +1,354 @@
+10-17 07:36:11.112   561   881 D ShortcutService: adding package: com.pairfall.game userId0
+10-17 07:36:11.112   561   881 D ShortcutService: handlePackageAdded: com.pairfall.game user=0
+10-17 07:36:11.112   561   881 D ShortcutService: rescanPackageIfNeeded 0@com.pairfall.game, forceRescan=true , isNewApp=true
+10-17 07:36:11.113   561   881 D ShortcutService: Package com.pairfall.game has 0 manifest shortcut(s), and 0 share target(s)
+10-17 07:36:11.122  1476  1476 I AiAiEcho: AppFetcherImplV2 updateApps package:[com.pairfall.game], userId:[0], reason:[package is added.].
+10-17 07:36:11.123  1204  1258 D PackageUpdatedTask: Package updated: mOp=ADD packages=[com.pairfall.game]
+10-17 07:36:11.177   561   891 I SdkSandboxManager: No SDKs used. Skipping SDK data reconcilation for CallingInfo{mUid=10209, mPackageName='com.pairfall.game, mAppProcessToken='null'}
+10-17 07:36:11.219  1204  1258 D SessionCommitReceiver: Removing PromiseIcon for package: com.pairfall.game, install reason: 0, alreadyAddedPromiseIcon: false
+10-17 07:36:11.365  1066  1066 D CarrierSvcBindHelper: onPackageAdded: com.pairfall.game
+10-17 07:36:11.437  1066  1290 D ImsResolver: maybeAddedImsService, packageName: com.pairfall.game
+10-17 07:36:11.619   917   966 V WindowManagerShell: Transition requested (#14): android.os.BinderProxy@12636ae TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.pairfall.game/.MainActivity } baseActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} topActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} origActivity=null realActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} numActivities=1 lastActiveTime=59276 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@a827c4f} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 136 - 0, 0) topActivityInfo=ActivityInfo{f892fdc com.pairfall.game.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= falseisLetterboxEducationEnabled= true isLetterboxDoubleTapEnabled= false topActivityEligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=1080 topActivityLetterboxHeight=2400 isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false cameraCompatTaskInfo=CameraCompatTaskInfo { cameraCompatControlState=hidden freeformCameraCompatMode=inactive}}}, pipTask = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 14 }
+10-17 07:36:11.610   561  1064 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.pairfall.game/.MainActivity} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+10-17 07:36:11.745   561   577 I AppsFilter: interaction: PackageSetting{5d03c8c com.android.microdroid.empty_payload/10198} -> PackageSetting{c649fd5 com.pairfall.game/10209} BLOCKED
+10-17 07:36:11.801  1204  1204 I TopTaskTracker: onTaskMovedToFront: (moved taskInfo to front) taskId=8, baseIntent=Intent { flg=0x10000000 cmp=com.pairfall.game/.MainActivity }
+10-17 07:36:11.867   561  1065 D CoreBackPreview: Window{78b82f4 u0 Splash Screen com.pairfall.game}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@42e03c1, mPriority=0, mIsAnimationCallback=false}
+10-17 07:36:11.941   561  2017 I ActivityManager: Start proc 3002:com.pairfall.game/u0a209 for next-top-activity {com.pairfall.game/com.pairfall.game.MainActivity}
+10-17 07:36:12.020  3002  3002 D nativeloader: Configuring clns-7 for other apk /data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.pairfall.game
+10-17 07:36:12.142   561   580 V WindowManager: Sent Transition (#14) createdAt=10-17 07:36:11.257 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.pairfall.game/.MainActivity } baseActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} topActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} origActivity=null realActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} numActivities=1 lastActiveTime=59276 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{753f1f3 Task{4a549a6 #8 type=standard A=10209:com.pairfall.game}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 136 - 0, 0) topActivityInfo=ActivityInfo{7683eb0 com.pairfall.game.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= falseisLetterboxEducationEnabled= true isLetterboxDoubleTapEnabled= false topActivityEligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=1080 topActivityLetterboxHeight=2400 isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false cameraCompatTaskInfo=CameraCompatTaskInfo { cameraCompatControlState=hidden freeformCameraCompatMode=inactive}}}, pipTask = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 14 }
+10-17 07:36:12.142   561   580 V WindowManager:         {WCT{RemoteToken{753f1f3 Task{4a549a6 #8 type=standard A=10209:com.pairfall.game}}} m=OPEN f=NONE leash=Surface(name=Task=8)/@0x6137498 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1},
+10-17 07:36:12.896   561   865 I AppWidgetServiceImpl: Updating package stopped masked state for uid 10209 package com.pairfall.game isStopped false
+10-17 07:36:13.252   561   561 I AppsFilter: interaction: PackageSetting{5d03c8c com.android.microdroid.empty_payload/10198} -> PackageSetting{c649fd5 com.pairfall.game/10209} BLOCKED
+10-17 07:36:13.262  3002  3002 D nativeloader: Load /system/lib64/libwebviewchromium_plat_support.so using ns clns-9 from class loader (caller=/data/app/~~vHwwYKVJfFl-g9D64meUoA==/com.google.android.webview-xFQuZfWIUeEY_BOIO-sGwA==/WebViewGoogle.apk): ok
+10-17 07:36:13.278  3002  3038 I chromium: [INFO:variations_seed_loader.cc(66)] Failed to open file for reading.: No such file or directory (2)
+10-17 07:36:13.279  3002  3038 I cr_VariationsUtils: Failed reading seed file "/data/user/0/com.pairfall.game/app_webview/variations_seed_new"
+10-17 07:36:13.280  3002  3038 I chromium: [INFO:variations_seed_loader.cc(66)] Failed to open file for reading.: No such file or directory (2)
+10-17 07:36:13.280  3002  3038 I cr_VariationsUtils: Failed reading seed file "/data/user/0/com.pairfall.game/app_webview/variations_seed"
+10-17 07:36:13.456   561   594 I ActivityManager: Start proc 3041:com.google.android.webview:webview_service/u0a153 for service {com.google.android.webview/org.chromium.android_webview.services.VariationsSeedServer}
+10-17 07:36:13.501  3002  3053 W chromium: [WARNING:dns_config_service_android.cc(81)] Failed to read DnsConfig.
+10-17 07:36:13.613   561   881 D ShortcutService: changing package: com.pairfall.game userId0
+10-17 07:36:13.613   561   881 D ShortcutService: handlePackageChanged: com.pairfall.game user=0
+10-17 07:36:13.613   561   881 D ShortcutService: rescanPackageIfNeeded 0@com.pairfall.game, forceRescan=true , isNewApp=true
+10-17 07:36:13.613   561   881 D ShortcutService: Package com.pairfall.game has 0 manifest shortcut(s), and 0 share target(s)
+10-17 07:36:13.627   561  1759 I ActivityManager: Start proc 3061:com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0ai9000 for  {com.pairfall.game/org.chromium.content.app.SandboxedProcessService0:0}
+10-17 07:36:13.736  1476  1476 I AiAiEcho: AppFetcherImpl onPackageChanged com.pairfall.game.
+10-17 07:36:13.745  1204  1258 D PackageUpdatedTask: Package updated: mOp=UPDATE packages=[com.pairfall.game]
+10-17 07:36:13.753  1476  2275 I AiAiEcho: AppIndexer Package:[com.pairfall.game] UserProfile:[0] Enabled:[true].
+10-17 07:36:13.753  1476  2275 I AiAiEcho: AppFetcherImplV2 updateApps package:[com.pairfall.game], userId:[0], reason:[package is updated.].
+10-17 07:36:13.842  3061  3061 I cr_WebViewApkApp: Launched version=124.0.6367.219 minSdkVersion=29 isBundle=false processName=com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0
+10-17 07:36:13.959  3002  3002 D Capacitor: Starting BridgeActivity
+10-17 07:36:13.969  3002  3002 D Capacitor: Registering plugin instance: CapacitorCookies
+10-17 07:36:13.972  3002  3002 D Capacitor: Registering plugin instance: WebView
+10-17 07:36:13.972  3002  3002 D Capacitor: Registering plugin instance: CapacitorHttp
+10-17 07:36:13.976  3002  3002 D Capacitor: Registering plugin instance: SystemBars
+10-17 07:36:13.978  3002  3002 D Capacitor: Registering plugin instance: Pairfall
+10-17 07:36:13.985  2057  2458 W System.err: Seeding context with ref: 10585486
+10-17 07:36:13.987  3002  3002 W Capacitor: Unable to read file at path public/plugins
+10-17 07:36:13.999  3002  3002 D Capacitor: Loading app at https://localhost
+10-17 07:36:14.055  3002  3002 D Capacitor: App started
+10-17 07:36:14.059  3002  3002 D Capacitor: App resumed
+10-17 07:36:14.082  3002  3046 D Capacitor: Handling local request: https://localhost/
+10-17 07:36:14.198   561  1065 D CoreBackPreview: Window{d5e9454 u0 com.pairfall.game/com.pairfall.game.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@379ba84, mPriority=0, mIsAnimationCallback=false}
+10-17 07:36:14.422  3061  3106 W chromium: [WARNING:runtime_features.cc(694)] SharedStorage for M118+ cannot be enabled in this configuration. Use --enable-features=SharedStorageAPI,SharedStorageAPIM118 in addition.
+10-17 07:36:14.426  3061  3106 W chromium: [WARNING:runtime_features.cc(730)] AttributionReportingCrossAppWeb cannot be enabled in this configuration. Use --enable-features=ConversionMeasurement,AttributionReportingCrossAppWeb in addition.
+10-17 07:36:14.451   918   918 I SafetyLabelChangedBroadcastReceiver: received broadcast packageName: com.pairfall.game, current user: UserHandle{0}, packageChangeEvent: NEW_INSTALL, intent user: UserHandle{0}
+10-17 07:36:14.531  1208  1993 I FontLog : Package com.pairfall.game has no metadata [CONTEXT service_id=132 ]
+10-17 07:36:14.565   561   580 I ActivityTaskManager: Displayed com.pairfall.game/.MainActivity for user 0: +3s352ms
+10-17 07:36:14.753   561   687 I ImeTracker: com.pairfall.game:5a815584: onRequestHide at ORIGIN_SERVER reason HIDE_UNSPECIFIED_WINDOW fromUser false
+10-17 07:36:14.753   561   687 I ImeTracker: com.pairfall.game:5a815584: onCancelled at PHASE_SERVER_SHOULD_HIDE
+10-17 07:36:14.825   561   594 I ActivityManager: Start proc 3153:com.google.android.webview:webview_apk/u0a153 for service {com.google.android.webview/org.chromium.android_webview.nonembedded.AwComponentUpdateService}
+10-17 07:36:15.022  3002  3133 W InteractionJankMonitor: Initializing without READ_DEVICE_CONFIG permission. enabled=true, interval=1, missedFrameThreshold=3, frameTimeThreshold=64, package=com.pairfall.game
+10-17 07:36:15.023  1383  1383 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1986 onStartInput(EditorInfo{EditorInfo{packageName=com.pairfall.game, inputType=0, inputTypeString=NULL, enableLearning=false, autoCorrection=false, autoComplete=false, imeOptions=12000000, privateImeOptions=null, actionName=UNSPECIFIED, actionLabel=null, initialSelStart=-1, initialSelEnd=-1, initialCapsMode=0, label=null, fieldId=0, fieldName=null, extras=null, hintText=null, hintLocales=[]}}, false)
+10-17 07:36:15.039   561  2017 W PackageConfigPersister: App-specific configuration not found for packageName: com.pairfall.game and userId: 0
+10-17 07:36:15.412  3002  3002 E Capacitor/Console: File:  - Line 6 - Msg: Error injecting safe area CSS: TypeError: Cannot read properties of null (reading 'style')
+10-17 07:36:15.412  3002  3002 E Capacitor/Console: File:  - Line 6 - Msg: Error injecting safe area CSS: TypeError: Cannot read properties of null (reading 'style')
+10-17 07:36:15.413  3002  3002 E Capacitor/Console: File:  - Line 6 - Msg: Error injecting safe area CSS: TypeError: Cannot read properties of null (reading 'style')
+10-17 07:36:15.431   561  1065 D CoreBackPreview: Window{78b82f4 u0 Splash Screen com.pairfall.game EXITING}: Setting back callback null
+10-17 07:36:15.438   561  2039 W InputManager-JNI: Input channel object '78b82f4 Splash Screen com.pairfall.game (client)' was disposed without first being removed with the input manager!
+10-17 07:36:15.698  3061  3106 I chromium: [INFO:viewport_data.cc(133)] E2E_Used ViewportFitCover
+10-17 07:36:15.790  1401  1409 W gle.android.gms: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/base.apk' with 1 weak references
+10-17 07:36:15.946  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:36:15.950  3061  3106 I chromium: [INFO:document_style_environment_variables.cc(104)] E2E_Used SafeAreaInsetBottom
+10-17 07:36:16.021  3002  3048 D Capacitor: Handling local request: https://localhost/favicon.ico
+10-17 07:36:16.024  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374278, pluginId: Pairfall, methodName: readSave
+10-17 07:36:16.024  3002  3002 V Capacitor: callback: 39374278, pluginId: Pairfall, methodName: readSave, methodData: {}
+10-17 07:36:16.119  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: {"values":{}}
+10-17 07:36:16.147  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:36:16.148  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374279, pluginId: SystemBars, methodName: setStyle
+10-17 07:36:16.148  3002  3002 V Capacitor: callback: 39374279, pluginId: SystemBars, methodName: setStyle, methodData: {"style":"LIGHT"}
+10-17 07:36:16.201  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:36:16.202  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374280, pluginId: Pairfall, methodName: addListener
+10-17 07:36:16.202  3002  3002 V Capacitor: callback: 39374280, pluginId: Pairfall, methodName: addListener, methodData: {"eventName":"back"}
+10-17 07:36:16.219  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:36:16.220  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374281, pluginId: Pairfall, methodName: keepAwake
+10-17 07:36:16.220  3002  3002 V Capacitor: callback: 39374281, pluginId: Pairfall, methodName: keepAwake, methodData: {"on":false}
+10-17 07:36:16.227  3061  3106 I chromium: [INFO:document_style_environment_variables.cc(104)] E2E_Used SafeAreaInsetBottom
+10-17 07:36:16.302  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: undefined
+10-17 07:36:16.302  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: undefined
+10-17 07:36:16.598  1066  1066 D CarrierSvcBindHelper: onPackageModified: com.pairfall.game
+10-17 07:36:16.717  2057  2728 W System.err: val in interceptor: null
+10-17 07:36:16.732  2057  2458 W System.err: Seeding context with ref: 5196220
+10-17 07:36:16.763  1066  1290 D ImsResolver: maybeAddedImsService, packageName: com.pairfall.game
+10-17 07:36:17.444  3153  3222 W cr_AWNetworkFetcherTask: 	at org.chromium.android_webview.nonembedded.NetworkFetcherTask.download(chromium-TrichromeWebViewGoogle6432.apk-stable-636771938:56)
+10-17 07:36:17.857  1401  3155 I Blockstore: [DataStoreImpl] Clearing Blockstore Data for package com.pairfall.game [CONTEXT service_id=258 ]
+10-17 07:36:20.404  1401  1409 W gle.android.gms: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/base.apk' with 1 weak references
+10-17 07:36:20.742  3329  3329 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:36:20.765  3329  3329 I AndroidRuntime: Using default boot image
+10-17 07:36:20.765  3329  3329 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:36:21.324  3329  3329 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:36:21.705  3329  3329 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:36:22.243  1204  1219 W s.nexuslauncher: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/base.apk' with 1 weak references
+10-17 07:36:22.429  3369  3399 D nativeloader: Load /data/app/~~1qTDf9x_PvpKC9i1eDXw8Q==/com.android.chrome--xMUj4ECN7YjIOMElSsgfA==/Chrome.apk!/lib/x86_64/libchromium_android_linker.so using ns clns-8 from class loader (caller=/data/app/~~1qTDf9x_PvpKC9i1eDXw8Q==/com.android.chrome--xMUj4ECN7YjIOMElSsgfA==/Chrome.apk): ok
+10-17 07:36:22.916  1080  1093 W ndroid.settings: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/base.apk' with 1 weak references
+10-17 07:36:22.926  3329  3329 D AndroidRuntime: Shutting down VM
+10-17 07:36:23.108  3002  3405 D ProfileInstaller: Installing profile for com.pairfall.game
+10-17 07:36:24.054  3423  3423 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:36:24.067  3423  3423 I AndroidRuntime: Using default boot image
+10-17 07:36:24.067  3423  3423 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:36:24.163  3423  3423 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:36:24.209  3423  3423 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:36:25.890  3423  3423 D AndroidRuntime: Shutting down VM
+10-17 07:36:26.341  1637  1967 E cr_CronetUrlRequestContext: 	at org.chromium.net.impl.af.run(PG:47)
+10-17 07:36:26.846  2057  2728 W System.err: val in interceptor: null
+10-17 07:36:27.093  3525  3525 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:36:27.104  3525  3525 I AndroidRuntime: Using default boot image
+10-17 07:36:27.107  3525  3525 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:36:27.299  3525  3525 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:36:27.413  3525  3525 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:36:28.552  3525  3525 D AndroidRuntime: Shutting down VM
+10-17 07:36:30.350  3061  3106 I chromium: [INFO:document_style_environment_variables.cc(104)] E2E_Used SafeAreaInsetBottom
+10-17 07:36:30.478  3061  3106 I chromium: [INFO:document_style_environment_variables.cc(104)] E2E_Used SafeAreaInsetBottom
+10-17 07:36:31.564  3701  3701 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:36:31.574  3701  3701 I AndroidRuntime: Using default boot image
+10-17 07:36:31.574  3701  3701 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:36:31.850  3701  3701 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:36:31.914  3701  3701 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:36:33.724  3701  3701 D AndroidRuntime: Shutting down VM
+10-17 07:36:34.777  1080  1093 W ndroid.settings: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/base.apk' with 1 weak references
+10-17 07:36:36.064  1476  1486 W ogle.android.as: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/base.apk' with 1 weak references
+10-17 07:36:36.672  1363  1379 W .apps.wellbeing: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/base.apk' with 1 weak references
+10-17 07:36:38.517  3864  3864 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:36:38.529  3864  3864 I AndroidRuntime: Using default boot image
+10-17 07:36:38.529  3864  3864 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:36:38.684  3864  3864 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:36:38.747  3864  3864 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:36:39.690  1363  1379 W .apps.wellbeing: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/base.apk' with 1 weak references
+10-17 07:36:39.716  1637  3886 W chromium: [1017/073639.716214:WARNING:url_request_context_config.cc(716)] Unrecognized Cronet experimental option "enable_telemetry" with params "false
+10-17 07:36:39.716  1637  3886 W chromium: 
+10-17 07:36:39.837  3864  3864 D AndroidRuntime: Shutting down VM
+10-17 07:36:40.838  3061  3106 I chromium: [INFO:audio_latency.cc(179)] audioHardwareBufferSize = 4360
+10-17 07:36:40.929  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:36:40.937  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374282, pluginId: Pairfall, methodName: keepAwake
+10-17 07:36:40.937  3002  3002 V Capacitor: callback: 39374282, pluginId: Pairfall, methodName: keepAwake, methodData: {"on":true}
+10-17 07:36:40.999  3911  3911 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:36:41.071  3911  3911 I AndroidRuntime: Using default boot image
+10-17 07:36:41.071  3911  3911 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:36:41.192  3911  3911 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:36:41.257  3911  3911 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:36:41.881  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: undefined
+10-17 07:36:42.098  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:36:42.099  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:36:42.116  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374283, pluginId: Pairfall, methodName: writeSave
+10-17 07:36:42.117  3002  3002 V Capacitor: callback: 39374283, pluginId: Pairfall, methodName: writeSave, methodData: {"key":"pairfall.save","value":"{\"version\":1,\"level\":1,\"coins\":100,\"stars\":{},\"theme\":\"zen-garden\",\"powerups\":{\"undo\":1,\"hint\":1,\"shuffle\":1,\"xray\":1,\"extraSlot\":1},\"settings\":{\"sound\":true,\"music\":true,\"vibration\":true,\"colorBlind\":false,\"leftHanded\":false,\"hindi\":true},\"stats\":{\"played\":1,\"won\":0,\"bestCombo\":0,\"pairs\":0},\"tutorialDone\":false,\"daily\":{\"last\":null,\"streak\":0,\"best\":0},\"seenIntro\":[]}"}
+10-17 07:36:42.117  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374284, pluginId: Pairfall, methodName: writeSave
+10-17 07:36:42.117  3002  3002 V Capacitor: callback: 39374284, pluginId: Pairfall, methodName: writeSave, methodData: {"key":"pairfall.save.bak","value":"{\"version\":1,\"level\":1,\"coins\":100,\"stars\":{},\"theme\":\"zen-garden\",\"powerups\":{\"undo\":1,\"hint\":1,\"shuffle\":1,\"xray\":1,\"extraSlot\":1},\"settings\":{\"sound\":true,\"music\":true,\"vibration\":true,\"colorBlind\":false,\"leftHanded\":false,\"hindi\":true},\"stats\":{\"played\":1,\"won\":0,\"bestCombo\":0,\"pairs\":0},\"tutorialDone\":false,\"daily\":{\"last\":null,\"streak\":0,\"best\":0},\"seenIntro\":[]}"}
+10-17 07:36:42.261  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: undefined
+10-17 07:36:42.264  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: undefined
+10-17 07:36:42.963  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.getEnabledCronetProviders(PG:25)
+10-17 07:36:42.963  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.createBuilderDelegate(PG:16)
+10-17 07:36:42.963  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.<init>(PG:1)
+10-17 07:36:42.963  3492  3623 D StrictMode: 	at org.chromium.net.ExperimentalCronetEngine$Builder.<init>(PG:1)
+10-17 07:36:42.968  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.getEnabledCronetProviders(PG:25)
+10-17 07:36:42.968  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.createBuilderDelegate(PG:16)
+10-17 07:36:42.968  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.<init>(PG:1)
+10-17 07:36:42.968  3492  3623 D StrictMode: 	at org.chromium.net.ExperimentalCronetEngine$Builder.<init>(PG:1)
+10-17 07:36:42.968  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.getEnabledCronetProviders(PG:25)
+10-17 07:36:42.968  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.createBuilderDelegate(PG:16)
+10-17 07:36:42.968  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.<init>(PG:1)
+10-17 07:36:42.968  3492  3623 D StrictMode: 	at org.chromium.net.ExperimentalCronetEngine$Builder.<init>(PG:1)
+10-17 07:36:42.974  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.getEnabledCronetProviders(PG:25)
+10-17 07:36:42.974  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.createBuilderDelegate(PG:16)
+10-17 07:36:42.974  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.<init>(PG:1)
+10-17 07:36:42.974  3492  3623 D StrictMode: 	at org.chromium.net.ExperimentalCronetEngine$Builder.<init>(PG:1)
+10-17 07:36:42.974  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.getEnabledCronetProviders(PG:25)
+10-17 07:36:42.974  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.createBuilderDelegate(PG:16)
+10-17 07:36:42.974  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.<init>(PG:1)
+10-17 07:36:42.974  3492  3623 D StrictMode: 	at org.chromium.net.ExperimentalCronetEngine$Builder.<init>(PG:1)
+10-17 07:36:42.974  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.getEnabledCronetProviders(PG:25)
+10-17 07:36:42.974  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.createBuilderDelegate(PG:16)
+10-17 07:36:42.974  3492  3623 D StrictMode: 	at org.chromium.net.CronetEngine$Builder.<init>(PG:1)
+10-17 07:36:42.974  3492  3623 D StrictMode: 	at org.chromium.net.ExperimentalCronetEngine$Builder.<init>(PG:1)
+10-17 07:36:43.717  3492  3942 I cr_CronetUrlRequestContext: destroyNativeStreamLocked org.chromium.net.impl.CronetBidirectionalStream@b4f4610
+10-17 07:36:44.285  3911  3911 D AndroidRuntime: Shutting down VM
+10-17 07:36:45.832  3966  3966 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:36:45.841  3966  3966 I AndroidRuntime: Using default boot image
+10-17 07:36:45.842  3966  3966 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:36:46.015  3966  3966 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:36:46.198  3966  3966 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:36:47.763  3492  3942 I cr_CronetUrlRequestContext: destroyNativeStreamLocked org.chromium.net.impl.CronetBidirectionalStream@d4598b6
+10-17 07:36:48.098  3966  3966 D AndroidRuntime: Shutting down VM
+10-17 07:36:51.823  1401  3845 I cr_CronetUrlRequestContext: destroyNativeStreamLocked org.chromium.net.impl.CronetBidirectionalStream@b3ba5fe
+10-17 07:36:53.147  1363  1379 W .apps.wellbeing: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/base.apk' with 1 weak references
+10-17 07:36:53.275  4045  4045 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:36:53.280  4045  4045 I AndroidRuntime: Using default boot image
+10-17 07:36:53.280  4045  4045 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:36:53.673  4045  4045 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:36:53.812  4045  4045 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:36:55.584  4045  4045 D AndroidRuntime: Shutting down VM
+10-17 07:36:56.947  4070  4070 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:36:56.952  4070  4070 I AndroidRuntime: Using default boot image
+10-17 07:36:56.952  4070  4070 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:36:57.046  4070  4070 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:36:57.114  4070  4070 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:36:58.718  4070  4070 D AndroidRuntime: Shutting down VM
+10-17 07:36:59.978  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:37:00.046  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374285, pluginId: Pairfall, methodName: haptic
+10-17 07:37:00.048  3002  3002 V Capacitor: callback: 39374285, pluginId: Pairfall, methodName: haptic, methodData: {"kind":"tap"}
+10-17 07:37:00.494  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: undefined
+10-17 07:37:02.170  1080  1093 W ndroid.settings: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/base.apk' with 1 weak references
+10-17 07:37:02.268  4154  4154 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:37:02.331  4154  4154 I AndroidRuntime: Using default boot image
+10-17 07:37:02.331  4154  4154 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:37:02.503  4154  4154 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:37:02.645  4154  4154 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:37:04.313  4154  4154 D AndroidRuntime: Shutting down VM
+10-17 07:37:05.695  4203  4203 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:37:05.699  4203  4203 I AndroidRuntime: Using default boot image
+10-17 07:37:05.699  4203  4203 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:37:06.051  4203  4203 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:37:06.293  4203  4203 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:37:08.673  4203  4203 D AndroidRuntime: Shutting down VM
+10-17 07:37:11.941  3002  3002 V Capacitor/PairfallPlugin: Notifying listeners for event back
+10-17 07:37:12.056  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: {}
+10-17 07:37:12.419  4259  4259 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:37:12.431  4259  4259 I AndroidRuntime: Using default boot image
+10-17 07:37:12.438  4259  4259 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:37:12.623  4259  4259 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:37:12.707  4259  4259 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:37:15.728  4259  4259 D AndroidRuntime: Shutting down VM
+10-17 07:37:18.550  1363  1379 W .apps.wellbeing: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/base.apk' with 1 weak references
+10-17 07:37:18.798  3002  3002 V Capacitor/PairfallPlugin: Notifying listeners for event back
+10-17 07:37:18.929  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: {}
+10-17 07:37:21.148  4334  4334 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:37:21.162  4334  4334 I AndroidRuntime: Using default boot image
+10-17 07:37:21.162  4334  4334 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:37:21.371  4334  4334 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:37:21.519  4334  4334 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:37:23.199  4334  4334 D AndroidRuntime: Shutting down VM
+10-17 07:37:24.520  3002  3002 V Capacitor/PairfallPlugin: Notifying listeners for event back
+10-17 07:37:24.582  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: {}
+10-17 07:37:25.000  4373  4373 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:37:25.017  4373  4373 I AndroidRuntime: Using default boot image
+10-17 07:37:25.017  4373  4373 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:37:25.262  4373  4373 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:37:25.305  4373  4373 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:37:28.669  4373  4373 D AndroidRuntime: Shutting down VM
+10-17 07:37:29.897  4461  4461 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:37:29.906  4461  4461 I AndroidRuntime: Using default boot image
+10-17 07:37:29.906  4461  4461 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:37:30.308  4461  4461 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:37:30.427  4461  4461 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:37:30.854  2057  4479 W System.err: Seeding context with ref: 48019558
+10-17 07:37:30.952  2057  4482 W System.err: val in interceptor: null
+10-17 07:37:32.481  4461  4461 D AndroidRuntime: Shutting down VM
+10-17 07:37:33.307  2057  4479 W System.err: Seeding context with ref: 216790258
+10-17 07:37:34.102  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:37:34.221  4499  4499 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:37:34.232  4499  4499 I AndroidRuntime: Using default boot image
+10-17 07:37:34.232  4499  4499 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:37:34.282  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374286, pluginId: Pairfall, methodName: keepAwake
+10-17 07:37:34.282  3002  3002 V Capacitor: callback: 39374286, pluginId: Pairfall, methodName: keepAwake, methodData: {"on":false}
+10-17 07:37:34.436  4499  4499 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:37:34.559  4499  4499 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:37:34.572  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: undefined
+10-17 07:37:36.083  4499  4499 D AndroidRuntime: Shutting down VM
+10-17 07:37:37.378  4523  4523 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:37:37.388  4523  4523 I AndroidRuntime: Using default boot image
+10-17 07:37:37.389  4523  4523 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:37:37.526  4523  4523 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:37:37.597  4523  4523 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:37:38.688  4523  4523 D AndroidRuntime: Shutting down VM
+10-17 07:37:39.784  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:37:39.785  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374287, pluginId: Pairfall, methodName: keepAwake
+10-17 07:37:39.786  3002  3002 V Capacitor: callback: 39374287, pluginId: Pairfall, methodName: keepAwake, methodData: {"on":false}
+10-17 07:37:39.887  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: undefined
+10-17 07:37:39.926  4553  4553 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:37:39.933  4553  4553 I AndroidRuntime: Using default boot image
+10-17 07:37:39.933  4553  4553 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:37:40.094  4553  4553 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:37:40.216  4553  4553 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:37:41.598  4553  4553 D AndroidRuntime: Shutting down VM
+10-17 07:37:43.214  4603  4603 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:37:43.219  4603  4603 I AndroidRuntime: Using default boot image
+10-17 07:37:43.219  4603  4603 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:37:43.226  2057  4482 W System.err: val in interceptor: null
+10-17 07:37:43.265  2057  4479 W System.err: Seeding context with ref: 199495417
+10-17 07:37:43.312  4603  4603 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:37:43.377  4603  4603 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:37:43.633  2057  4482 W System.err: val in interceptor: null
+10-17 07:37:44.478  4603  4603 D AndroidRuntime: Shutting down VM
+10-17 07:37:47.817  3002  3002 V Capacitor/PairfallPlugin: Notifying listeners for event back
+10-17 07:37:47.820  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: {}
+10-17 07:37:47.820  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:37:47.821  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374288, pluginId: Pairfall, methodName: keepAwake
+10-17 07:37:47.821  3002  3002 V Capacitor: callback: 39374288, pluginId: Pairfall, methodName: keepAwake, methodData: {"on":false}
+10-17 07:37:47.825  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: undefined
+10-17 07:37:49.890   917   926 W ndroid.systemui: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/base.apk' with 2 weak references
+10-17 07:37:50.085  3002  3002 V Capacitor/PairfallPlugin: Notifying listeners for event back
+10-17 07:37:50.130  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: {}
+10-17 07:37:51.489  3002  3002 V Capacitor/PairfallPlugin: Notifying listeners for event back
+10-17 07:37:51.490  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: {}
+10-17 07:37:51.490  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:37:51.490  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:37:51.490  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:37:51.490  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374289, pluginId: Pairfall, methodName: writeSave
+10-17 07:37:51.490  3002  3002 V Capacitor: callback: 39374289, pluginId: Pairfall, methodName: writeSave, methodData: {"key":"pairfall.save.bak","value":"{\"version\":1,\"level\":1,\"coins\":100,\"stars\":{},\"theme\":\"zen-garden\",\"powerups\":{\"undo\":1,\"hint\":1,\"shuffle\":1,\"xray\":1,\"extraSlot\":1},\"settings\":{\"sound\":true,\"music\":true,\"vibration\":true,\"colorBlind\":false,\"leftHanded\":false,\"hindi\":true},\"stats\":{\"played\":1,\"won\":0,\"bestCombo\":0,\"pairs\":0},\"tutorialDone\":false,\"daily\":{\"last\":null,\"streak\":0,\"best\":0},\"seenIntro\":[]}"}
+10-17 07:37:51.490  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374290, pluginId: Pairfall, methodName: writeSave
+10-17 07:37:51.490  3002  3002 V Capacitor: callback: 39374290, pluginId: Pairfall, methodName: writeSave, methodData: {"key":"pairfall.save","value":"{\"version\":1,\"level\":1,\"coins\":100,\"stars\":{},\"theme\":\"zen-garden\",\"powerups\":{\"undo\":1,\"hint\":1,\"shuffle\":1,\"xray\":1,\"extraSlot\":1},\"settings\":{\"sound\":true,\"music\":true,\"vibration\":true,\"colorBlind\":false,\"leftHanded\":false,\"hindi\":true},\"stats\":{\"played\":1,\"won\":0,\"bestCombo\":0,\"pairs\":0},\"tutorialDone\":false,\"daily\":{\"last\":null,\"streak\":0,\"best\":0},\"seenIntro\":[]}"}
+10-17 07:37:51.490  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374291, pluginId: Pairfall, methodName: exit
+10-17 07:37:51.490  3002  3002 V Capacitor: callback: 39374291, pluginId: Pairfall, methodName: exit, methodData: {}
+10-17 07:37:51.494   561   653 I ActivityTaskManager: moveTaskToBack: Task{4a549a6 #8 type=standard A=10209:com.pairfall.game}
+10-17 07:37:51.495   917   966 V WindowManagerShell: Transition requested (#30): android.os.BinderProxy@2619d7e TransitionRequestInfo { type = TO_BACK, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.pairfall.game/.MainActivity } baseActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} topActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} origActivity=null realActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} numActivities=1 lastActiveTime=60506 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@f00a2df} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{c5f7b2c com.pairfall.game.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= falseisLetterboxEducationEnabled= true isLetterboxDoubleTapEnabled= false topActivityEligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=1080 topActivityLetterboxHeight=2400 isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false cameraCompatTaskInfo=CameraCompatTaskInfo { cameraCompatControlState=hidden freeformCameraCompatMode=inactive}}}, pipTask = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 30 }
+10-17 07:37:51.501  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: undefined
+10-17 07:37:51.501  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: undefined
+10-17 07:37:51.501  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: undefined
+10-17 07:37:51.504  3002  3002 D Capacitor: App paused
+10-17 07:37:51.607  1363  1379 W .apps.wellbeing: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~rZWrQBsbPrG_o4yHieDkbg==/com.pairfall.game-IdHWjl-5XZkYWDYgMyMDbQ==/base.apk' with 1 weak references
+10-17 07:37:51.765   561   580 V WindowManager: Sent Transition (#30) createdAt=10-17 07:37:51.494 via request=TransitionRequestInfo { type = TO_BACK, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.pairfall.game/.MainActivity } baseActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} topActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} origActivity=null realActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} numActivities=1 lastActiveTime=60506 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{753f1f3 Task{4a549a6 #8 type=standard A=10209:com.pairfall.game}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{7683eb0 com.pairfall.game.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= falseisLetterboxEducationEnabled= true isLetterboxDoubleTapEnabled= false topActivityEligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=1080 topActivityLetterboxHeight=2400 isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false cameraCompatTaskInfo=CameraCompatTaskInfo { cameraCompatControlState=hidden freeformCameraCompatMode=inactive}}}, pipTask = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 30 }
+10-17 07:37:51.771   561   580 V WindowManager:         {WCT{RemoteToken{753f1f3 Task{4a549a6 #8 type=standard A=10209:com.pairfall.game}}} m=TO_BACK f=NONE leash=Surface(name=Task=8)/@0x6137498 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1},
+10-17 07:37:53.288  3002  3918 W chromium: [WARNING:sync_reader.cc(175)] ASR: No room in socket buffer.: Broken pipe (32)
+10-17 07:37:53.296  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:37:53.296  3002  3002 I Capacitor/Console: File:  - Line 349 - Msg: [object Object]
+10-17 07:37:53.500  3002  3002 D Capacitor: App stopped
+10-17 07:37:53.507  3002  3002 D Capacitor: Saving instance state!
+10-17 07:37:53.521  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374292, pluginId: Pairfall, methodName: writeSave
+10-17 07:37:53.521  3002  3002 V Capacitor: callback: 39374292, pluginId: Pairfall, methodName: writeSave, methodData: {"key":"pairfall.save.bak","value":"{\"version\":1,\"level\":1,\"coins\":100,\"stars\":{},\"theme\":\"zen-garden\",\"powerups\":{\"undo\":1,\"hint\":1,\"shuffle\":1,\"xray\":1,\"extraSlot\":1},\"settings\":{\"sound\":true,\"music\":true,\"vibration\":true,\"colorBlind\":false,\"leftHanded\":false,\"hindi\":true},\"stats\":{\"played\":1,\"won\":0,\"bestCombo\":0,\"pairs\":0},\"tutorialDone\":false,\"daily\":{\"last\":null,\"streak\":0,\"best\":0},\"seenIntro\":[]}"}
+10-17 07:37:53.522  3002  3002 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 39374293, pluginId: Pairfall, methodName: writeSave
+10-17 07:37:53.522  3002  3002 V Capacitor: callback: 39374293, pluginId: Pairfall, methodName: writeSave, methodData: {"key":"pairfall.save","value":"{\"version\":1,\"level\":1,\"coins\":100,\"stars\":{},\"theme\":\"zen-garden\",\"powerups\":{\"undo\":1,\"hint\":1,\"shuffle\":1,\"xray\":1,\"extraSlot\":1},\"settings\":{\"sound\":true,\"music\":true,\"vibration\":true,\"colorBlind\":false,\"leftHanded\":false,\"hindi\":true},\"stats\":{\"played\":1,\"won\":0,\"bestCombo\":0,\"pairs\":0},\"tutorialDone\":false,\"daily\":{\"last\":null,\"streak\":0,\"best\":0},\"seenIntro\":[]}"}
+10-17 07:37:53.551  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: undefined
+10-17 07:37:53.551  3002  3002 I Capacitor/Console: File:  - Line 333 - Msg: undefined
+10-17 07:37:53.711  1637  2008 D nativeloader: Load /system/lib64/libwebviewchromium_plat_support.so using ns clns-9 from class loader (caller=/data/app/~~vHwwYKVJfFl-g9D64meUoA==/com.google.android.webview-xFQuZfWIUeEY_BOIO-sGwA==/WebViewGoogle.apk): ok
+10-17 07:37:53.713  1637  4689 I chromium: [1017/073753.712802:INFO:variations_seed_loader.cc(66)] Failed to open file for reading.: No such file or directory (2)
+10-17 07:37:53.713  1637  4689 I chromium: [1017/073753.713456:INFO:variations_seed_loader.cc(66)] Failed to open file for reading.: No such file or directory (2)
+10-17 07:37:53.761   561   594 I ActivityManager: Start proc 4697:com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0i1 for  {com.google.android.googlequicksearchbox/org.chromium.content.app.SandboxedProcessService0:0}
+10-17 07:37:53.804  4697  4697 I cr_WebViewApkApp: Launched version=124.0.6367.219 minSdkVersion=29 isBundle=false processName=com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0
+10-17 07:37:54.843   561   980 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.pairfall.game/.MainActivity} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=2
+10-17 07:37:54.852   917   966 V WindowManagerShell: Transition requested (#31): android.os.BinderProxy@6225bc7 TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.pairfall.game/.MainActivity } baseActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} topActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} origActivity=null realActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} numActivities=1 lastActiveTime=159165 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@781e5f4} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 136 - 0, 0) topActivityInfo=ActivityInfo{517711d com.pairfall.game.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= falseisLetterboxEducationEnabled= true isLetterboxDoubleTapEnabled= false topActivityEligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=1080 topActivityLetterboxHeight=2400 isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false cameraCompatTaskInfo=CameraCompatTaskInfo { cameraCompatControlState=hidden freeformCameraCompatMode=inactive}}}, pipTask = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 31 }
+10-17 07:37:54.858  3002  3002 D Capacitor: App restarted
+10-17 07:37:54.858  3002  3002 D Capacitor: App started
+10-17 07:37:54.859  3002  3002 D Capacitor: App resumed
+10-17 07:37:54.861  1204  1204 I TopTaskTracker: onTaskMovedToFront: (moved taskInfo to front) taskId=8, baseIntent=Intent { flg=0x10000000 cmp=com.pairfall.game/.MainActivity }
+10-17 07:37:54.870   917   966 D WindowManagerShell: onActivityRestartAttempt: ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity}
+10-17 07:37:54.926   561   580 V WindowManager: Sent Transition (#31) createdAt=10-17 07:37:54.834 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.pairfall.game/.MainActivity } baseActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} topActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} origActivity=null realActivity=ComponentInfo{com.pairfall.game/com.pairfall.game.MainActivity} numActivities=1 lastActiveTime=159165 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{753f1f3 Task{4a549a6 #8 type=standard A=10209:com.pairfall.game}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 136 - 0, 0) topActivityInfo=ActivityInfo{7683eb0 com.pairfall.game.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false locusId=null displayAreaFeatureId=1 isTopActivityTransparent=false appCompatTaskInfo=AppCompatTaskInfo { topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= falseisLetterboxEducationEnabled= true isLetterboxDoubleTapEnabled= false topActivityEligibleForUserAspectRatioButton= false topActivityBoundsLetterboxed= false isFromLetterboxDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=1080 topActivityLetterboxHeight=2400 isUserFullscreenOverrideEnabled=false isSystemFullscreenOverrideEnabled=false cameraCompatTaskInfo=CameraCompatTaskInfo { cameraCompatControlState=hidden freeformCameraCompatMode=inactive}}}, pipTask = null, remoteTransition = null, displayChange = null, flags = 0, debugId = 31 }
+10-17 07:37:54.927   561   580 V WindowManager:         {WCT{RemoteToken{753f1f3 Task{4a549a6 #8 type=standard A=10209:com.pairfall.game}}} m=TO_FRONT f=MOVE_TO_TOP leash=Surface(name=Task=8)/@0x6137498 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0 taskParent=-1},
+10-17 07:37:55.469   561   687 I ImeTracker: com.pairfall.game:db39a2d7: onRequestHide at ORIGIN_SERVER reason HIDE_UNSPECIFIED_WINDOW fromUser false
+10-17 07:37:55.516  3061  3106 I chromium: [INFO:document_style_environment_variables.cc(104)] E2E_Used SafeAreaInsetBottom
+10-17 07:37:55.563  1383  1383 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1986 onStartInput(EditorInfo{EditorInfo{packageName=com.pairfall.game, inputType=0, inputTypeString=NULL, enableLearning=false, autoCorrection=false, autoComplete=false, imeOptions=12000000, privateImeOptions=null, actionName=UNSPECIFIED, actionLabel=null, initialSelStart=-1, initialSelEnd=-1, initialCapsMode=0, label=null, fieldId=0, fieldName=null, extras=null, hintText=null, hintLocales=[]}}, false)
+10-17 07:37:55.566   561  2017 W PackageConfigPersister: App-specific configuration not found for packageName: com.pairfall.game and userId: 0
+10-17 07:37:55.933  1204  1204 I ImeTracker: com.pairfall.game:db39a2d7: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
+10-17 07:37:56.019  4741  4741 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+10-17 07:37:56.050  4741  4741 I AndroidRuntime: Using default boot image
+10-17 07:37:56.050  4741  4741 I AndroidRuntime: Leaving lock profiling enabled
+10-17 07:37:56.194  4741  4741 D nativeloader: InitDefaultPublicLibraries for_preload=1: libandroid.so:libaaudio.so:libamidi.so:libbinder_ndk.so:libc.so:libcamera2ndk.so:libdl.so:libEGL.so:libGLESv1_CM.so:libGLESv2.so:libGLESv3.so:libicu.so:libicui18n.so:libicuuc.so:libjnigraphics.so:liblog.so:libmediandk.so:libm.so:libnativehelper.so:libnativewindow.so:libOpenMAXAL.so:libOpenSLES.so:libRS.so:libstdc++.so:libsync.so:libvulkan.so:libwebviewchromium_plat_support.so:libz.so
+10-17 07:37:56.237  4741  4741 D AndroidRuntime: Calling main entry com.android.commands.uiautomator.Launcher
+10-17 07:37:57.257  4741  4741 D AndroidRuntime: Shutting down VM
